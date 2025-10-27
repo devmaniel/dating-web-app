@@ -9,8 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Sign_inRouteImport } from './routes/sign_in'
 import { Route as IndexRouteImport } from './routes/index'
 
+const Sign_inRoute = Sign_inRouteImport.update({
+  id: '/sign_in',
+  path: '/sign_in',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +25,39 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sign_in': typeof Sign_inRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sign_in': typeof Sign_inRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/sign_in': typeof Sign_inRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/sign_in'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/sign_in'
+  id: '__root__' | '/' | '/sign_in'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  Sign_inRoute: typeof Sign_inRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sign_in': {
+      id: '/sign_in'
+      path: '/sign_in'
+      fullPath: '/sign_in'
+      preLoaderRoute: typeof Sign_inRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,6 +70,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  Sign_inRoute: Sign_inRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
