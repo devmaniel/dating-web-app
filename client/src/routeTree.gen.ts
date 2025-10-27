@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as Sign_upRouteImport } from './routes/sign_up'
 import { Route as Sign_inRouteImport } from './routes/sign_in'
 import { Route as IndexRouteImport } from './routes/index'
 
+const Sign_upRoute = Sign_upRouteImport.update({
+  id: '/sign_up',
+  path: '/sign_up',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Sign_inRoute = Sign_inRouteImport.update({
   id: '/sign_in',
   path: '/sign_in',
@@ -26,31 +32,42 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/sign_in': typeof Sign_inRoute
+  '/sign_up': typeof Sign_upRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign_in': typeof Sign_inRoute
+  '/sign_up': typeof Sign_upRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/sign_in': typeof Sign_inRoute
+  '/sign_up': typeof Sign_upRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign_in'
+  fullPaths: '/' | '/sign_in' | '/sign_up'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign_in'
-  id: '__root__' | '/' | '/sign_in'
+  to: '/' | '/sign_in' | '/sign_up'
+  id: '__root__' | '/' | '/sign_in' | '/sign_up'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   Sign_inRoute: typeof Sign_inRoute
+  Sign_upRoute: typeof Sign_upRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sign_up': {
+      id: '/sign_up'
+      path: '/sign_up'
+      fullPath: '/sign_up'
+      preLoaderRoute: typeof Sign_upRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sign_in': {
       id: '/sign_in'
       path: '/sign_in'
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   Sign_inRoute: Sign_inRoute,
+  Sign_upRoute: Sign_upRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

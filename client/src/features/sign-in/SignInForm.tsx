@@ -62,8 +62,8 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
   };
 
   const handleSignUpClick = () => {
-    // TODO: Implement sign up navigation
-    console.log('Sign up clicked');
+    // @ts-expect-error - Route will be available after route tree regeneration
+    navigate({ to: '/sign_up' });
   };
 
   const isFormValid = isValid && !isSubmitting;
@@ -82,12 +82,12 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
 
           <UsernameEmailInput
             {...register('usernameOrEmail')}
-            placeholder="Username/Email"
+            placeholder="Enter your username or email"
           />
 
           <PasswordInput
             {...register('password')}
-            placeholder="************"
+            placeholder="Enter your password"
           />
 
           <div className="text-right">
