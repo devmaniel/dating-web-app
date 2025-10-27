@@ -127,7 +127,7 @@ export function SignUpForm({ onSubmit, onGoogleSignUp }: SignUpFormProps = {}) {
           </div>
           <button
             onClick={() => navigate({ to: '/sign_in' })}
-            className="text-sm text-blue-600 hover:text-blue-700 underline cursor-pointer"
+            className="text-sm text-primary hover:text-primary/90 underline cursor-pointer transition-colors"
           >
             Go to Sign In now
           </button>
@@ -201,7 +201,7 @@ export function SignUpForm({ onSubmit, onGoogleSignUp }: SignUpFormProps = {}) {
           <Button
             type="submit"
             disabled={!isFormValid}
-            className="w-full h-12 bg-black text-white rounded-full text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 rounded-full text-base"
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? 'Signing Up...' : 'Sign Up'}
@@ -212,7 +212,7 @@ export function SignUpForm({ onSubmit, onGoogleSignUp }: SignUpFormProps = {}) {
             <button
               type="button"
               onClick={handleSignInClick}
-              className="text-black font-semibold cursor-pointer"
+              className="text-primary hover:text-primary/90 font-semibold cursor-pointer transition-colors"
             >
               Sign In
             </button>

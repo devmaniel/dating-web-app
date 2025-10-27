@@ -62,7 +62,6 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
   };
 
   const handleSignUpClick = () => {
-    // @ts-expect-error - Route will be available after route tree regeneration
     navigate({ to: '/sign_up' });
   };
 
@@ -94,7 +93,7 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
             <button
               type="button"
               onClick={handleForgotPassword}
-              className="text-sm text-gray-600 cursor-pointer"
+              className="text-sm text-primary hover:text-primary/90 cursor-pointer transition-colors"
             >
               Forgot Password ?
             </button>
@@ -103,7 +102,7 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
           <Button
             type="submit"
             disabled={!isFormValid}
-            className="w-full h-12 bg-black text-white rounded-full text-base disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-12 rounded-full text-base"
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {isSubmitting ? 'Signing In...' : 'Sign In'}
@@ -114,7 +113,7 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
             <button
               type="button"
               onClick={handleSignUpClick}
-              className="text-black font-semibold cursor-pointer"
+              className="text-primary hover:text-primary/90 font-semibold cursor-pointer transition-colors"
             >
               Sign Up
             </button>

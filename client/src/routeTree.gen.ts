@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Sign_upRouteImport } from './routes/sign_up'
 import { Route as Sign_inRouteImport } from './routes/sign_in'
+import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as IndexRouteImport } from './routes/index'
 
 const Sign_upRoute = Sign_upRouteImport.update({
@@ -23,6 +24,11 @@ const Sign_inRoute = Sign_inRouteImport.update({
   path: '/sign_in',
   getParentRoute: () => rootRouteImport,
 } as any)
+const OnboardingRoute = OnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -31,30 +37,34 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
   '/sign_in': typeof Sign_inRoute
   '/sign_up': typeof Sign_upRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
   '/sign_in': typeof Sign_inRoute
   '/sign_up': typeof Sign_upRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/onboarding': typeof OnboardingRoute
   '/sign_in': typeof Sign_inRoute
   '/sign_up': typeof Sign_upRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/sign_in' | '/sign_up'
+  fullPaths: '/' | '/onboarding' | '/sign_in' | '/sign_up'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign_in' | '/sign_up'
-  id: '__root__' | '/' | '/sign_in' | '/sign_up'
+  to: '/' | '/onboarding' | '/sign_in' | '/sign_up'
+  id: '__root__' | '/' | '/onboarding' | '/sign_in' | '/sign_up'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  OnboardingRoute: typeof OnboardingRoute
   Sign_inRoute: typeof Sign_inRoute
   Sign_upRoute: typeof Sign_upRoute
 }
@@ -75,6 +85,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Sign_inRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/onboarding': {
+      id: '/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof OnboardingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  OnboardingRoute: OnboardingRoute,
   Sign_inRoute: Sign_inRoute,
   Sign_upRoute: Sign_upRoute,
 }
