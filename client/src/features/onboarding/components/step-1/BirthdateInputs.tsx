@@ -120,7 +120,7 @@ const DatePickerMenu: React.FC<DatePickerMenuProps> = ({
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={`Search ${label.toLowerCase()}...`}
-          className="w-full px-3 py-2 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent bg-background"
+          className="w-full px-3 py-2 text-sm border border-black rounded-md focus:outline-none focus:border-black bg-background"
         />
       </div>
       <div
@@ -222,7 +222,7 @@ export const BirthdateInputs = React.forwardRef<HTMLDivElement, BirthdateInputsP
             <button
               type="button"
               onClick={() => setOpenMenu(openMenu === 'day' ? null : 'day')}
-              className="w-full h-16 px-4 bg-secondary rounded-2xl text-foreground text-lg font-medium hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring transition-all flex items-center justify-between"
+              className="w-full h-16 px-4 bg-secondary border border-black rounded-2xl text-foreground text-lg font-medium hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring transition-all flex items-center justify-between"
             >
               <span>{getDisplayValue('day')}</span>
               <ChevronDown
@@ -247,7 +247,7 @@ export const BirthdateInputs = React.forwardRef<HTMLDivElement, BirthdateInputsP
             <button
               type="button"
               onClick={() => setOpenMenu(openMenu === 'month' ? null : 'month')}
-              className="w-full h-16 px-4 bg-secondary rounded-2xl text-foreground text-lg font-medium hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring transition-all flex items-center justify-between"
+              className="w-full h-16 px-4 bg-secondary border border-black rounded-2xl text-foreground text-lg font-medium hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring transition-all flex items-center justify-between"
             >
               <span>{getDisplayValue('month')}</span>
               <ChevronDown
@@ -280,7 +280,7 @@ export const BirthdateInputs = React.forwardRef<HTMLDivElement, BirthdateInputsP
                   setYear(value);
                 }
               }}
-              className="w-full h-16 px-4 bg-secondary rounded-2xl text-foreground text-lg font-medium hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground"
+              className="w-full h-16 px-4 bg-secondary border border-black rounded-2xl text-foreground text-lg font-medium hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-ring transition-all placeholder:text-muted-foreground"
             />
           </div>
         </div>

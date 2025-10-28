@@ -122,7 +122,7 @@ export const LocationInput = React.forwardRef<HTMLDivElement, LocationInputProps
           id={id}
           type="button"
           onClick={() => setOpen(!open)}
-          className="relative flex items-center justify-between w-full h-12 px-3 pl-10 bg-secondary border border-transparent rounded-md hover:bg-background hover:border-gray-900 focus:bg-background focus:border-gray-900 focus:outline-none transition-colors"
+          className="relative flex items-center justify-between w-full h-12 px-3 pl-10 bg-secondary border border-black rounded-md hover:bg-background hover:border-black focus:bg-background focus:border-black focus:outline-none transition-colors"
         >
           <div className="absolute left-3 pointer-events-none">
             <MapPin className="w-5 h-5 text-muted-foreground" />
@@ -134,14 +134,14 @@ export const LocationInput = React.forwardRef<HTMLDivElement, LocationInputProps
         </button>
 
         {open && (
-          <div className="absolute z-50 w-full mt-1 bg-card border border-gray-900 rounded-md shadow-lg max-h-60 overflow-hidden">
+          <div className="absolute z-50 w-full mt-1 bg-card border border-black rounded-md shadow-lg max-h-60 overflow-hidden">
             <div className="p-2 border-b border-border">
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Type to search (e.g., Makati, BGC, Quezon City)..."
-                className="w-full px-3 py-2 text-sm border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent bg-background"
+                className="w-full px-3 py-2 text-sm border border-black rounded-md focus:outline-none focus:border-black bg-background"
                 autoFocus
               />
             </div>
