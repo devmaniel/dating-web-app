@@ -1,7 +1,7 @@
 export type SignUpFormProps = {
   onSubmit?: (data: {
     email: string;
-    username: string;
+    birthdate: string;
     password: string;
     confirmPassword: string;
   }) => void;
@@ -10,7 +10,6 @@ export type SignUpFormProps = {
 
 export type SignUpError =
   | 'email_exists'
-  | 'username_exists'
   | 'server_error'
   | 'passwords_mismatch'
   | null;

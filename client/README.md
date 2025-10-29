@@ -1,73 +1,154 @@
-# React + TypeScript + Vite
+# Dating Web App - Development Checklist
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern dating application built with React, TypeScript, and Vite. This document serves as a checklist to track the implementation progress of all required features.
 
-Currently, two official plugins are available:
+## Table of Contents
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- [Features Checklist](#features-checklist)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Development](#development)
+- [Building for Production](#building-for-production)
 
-## React Compiler
+## Features Checklist
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. User Registration & Login
 
-## Expanding the ESLint configuration
+**New User Sign-Up (Web App)**
+- [x] Register using email
+- [x] Enter name, age, short bio (text), and upload a profile picture
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+**Returning User Login**
+- [x] Secure login with email and password
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 2. User Profile Management
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- [x] View your profile in the browser
+- [x] Edit details: name, bio, profile photo
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 3. User Discovery & Matching
+
+- [x] Browse profiles via desktop interface
+- [x] Swipe (drag) right to like, left to skip
+- [x] Form a match when both users like each other
+- [x] Avoid showing the same profile again
+
+**Filters (Optional/Bonus)**
+- [x] Age filter
+- [x] Distance filter
+
+### 4. Messaging / Chat
+
+- [x] Chat unlocked only after matching
+- [x] Send and receive text messages
+
+### 5. Match List
+
+- [x] Display all current matches
+
+**Optional/Bonus**
+- [x] Allow users to unmatch (removes chat access)
+
+### 6. Bonus Features
+
+**Optional/Bonus**
+- [x] Browser-based push notification simulation for new matches/messages
+- [x] Light/dark mode UI toggle
+
+## Tech Stack
+
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Framework**: Tailwind CSS, shadcn/ui components
+- **Routing**: TanStack Router
+- **State Management**: Zustand
+- **Form Handling**: React Hook Form with Zod validation
+- **Animations**: Framer Motion
+- **UI Components**: Radix UI, Lucide React Icons
+
+## Project Structure
+
+```
+src/
+├── features/          # Feature-based modules
+│   ├── auth/          # Authentication components
+│   ├── chats/         # Messaging functionality
+│   ├── match/         # Matching system
+│   ├── onboarding/    # User onboarding flow
+│   ├── profile/       # Profile management
+│   ├── sign-in/       # Sign in components
+│   └── sign-up/       # Sign up components
+├── routes/            # Application routes
+├── shared/            # Shared components and utilities
+├── api/               # API integration layer
+└── lib/               # Utility libraries
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Prerequisites
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- Node.js (v16 or higher)
+- npm or yarn package manager
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   ```
+
+2. Navigate to the client directory:
+   ```bash
+   cd dating-web-app/client
+   ```
+
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open your browser and visit `http://localhost:5173`
+
+## Development
+
+- Run development server: `npm run dev`
+- Lint code: `npm run lint`
+- Preview production build: `npm run preview`
+
+## Building for Production
+
+To create a production build:
+
+```bash
+npm run build
 ```
+
+The build output will be in the `dist/` directory.
+
+## Environment Variables
+
+Create a `.env` file in the root directory based on `.env.example`:
+
+```bash
+# Example environment variables
+VITE_API_URL=http://localhost:3000/api
+VITE_APP_NAME=Dating App
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a pull request
+
+## License
+
+This project is licensed under the MIT License.

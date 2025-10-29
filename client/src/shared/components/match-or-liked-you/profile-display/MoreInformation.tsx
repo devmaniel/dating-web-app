@@ -1,0 +1,51 @@
+import { AboutMe } from "./AboutMe";
+import { Interest } from "./Interest";
+import { LookingFor } from "./LookingFor";
+import { Music } from "./Music";
+import { Album } from "./Album";
+
+interface Photo {
+  id: string;
+  url: string;
+  name: string;
+}
+
+interface Profile {
+  aboutMe: string;
+  lookingFor: string;
+  photos: string[];
+  musicArtists: string[];
+  musicSongs: string[];
+  musicAlbums: string[];
+  musicAlbumCovers: string[];
+}
+
+interface MoreInformationProps {
+  profile: Profile;
+}
+
+export const MoreInformation = ({ profile }: MoreInformationProps) => {
+  // Transform profile photos to the format expected by Album component
+  const albumPhotos: Photo[] = profile.photos.map((url, index) => ({
+    id: `photo-${index}`,
+    url,
+    name: `Photo ${index + 1}`
+  }));
+
+  return (
+    <>
+      <div className="w-full space-y-10">
+        <AboutMe content={profile.aboutMe} />
+        <Interest />
+        <LookingFor content={profile.lookingFor} />
+        <Music 
+          artists={profile.musicArtists}
+          songs={profile.musicSongs}
+          albums={profile.musicAlbums}
+          albumCovers={profile.musicAlbumCovers}
+        />
+        <Album photos={albumPhotos} />
+      </div>
+    </>
+  );
+};

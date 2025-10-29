@@ -12,7 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as Sign_upRouteImport } from './routes/sign_up'
 import { Route as Sign_inRouteImport } from './routes/sign_in'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
+import { Route as MatchRouteImport } from './routes/match'
+import { Route as Liked_youRouteImport } from './routes/liked_you'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ChatsIndexRouteImport } from './routes/chats/index'
+import { Route as ProfileUserIdRouteImport } from './routes/profile/$userId'
+import { Route as ChatsChatIdRouteImport } from './routes/chats/$chatId'
 
 const Sign_upRoute = Sign_upRouteImport.update({
   id: '/sign_up',
@@ -29,44 +34,117 @@ const OnboardingRoute = OnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MatchRoute = MatchRouteImport.update({
+  id: '/match',
+  path: '/match',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Liked_youRoute = Liked_youRouteImport.update({
+  id: '/liked_you',
+  path: '/liked_you',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChatsIndexRoute = ChatsIndexRouteImport.update({
+  id: '/chats/',
+  path: '/chats/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileUserIdRoute = ProfileUserIdRouteImport.update({
+  id: '/profile/$userId',
+  path: '/profile/$userId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatsChatIdRoute = ChatsChatIdRouteImport.update({
+  id: '/chats/$chatId',
+  path: '/chats/$chatId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/liked_you': typeof Liked_youRoute
+  '/match': typeof MatchRoute
   '/onboarding': typeof OnboardingRoute
   '/sign_in': typeof Sign_inRoute
   '/sign_up': typeof Sign_upRoute
+  '/chats/$chatId': typeof ChatsChatIdRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/chats': typeof ChatsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/liked_you': typeof Liked_youRoute
+  '/match': typeof MatchRoute
   '/onboarding': typeof OnboardingRoute
   '/sign_in': typeof Sign_inRoute
   '/sign_up': typeof Sign_upRoute
+  '/chats/$chatId': typeof ChatsChatIdRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/chats': typeof ChatsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/liked_you': typeof Liked_youRoute
+  '/match': typeof MatchRoute
   '/onboarding': typeof OnboardingRoute
   '/sign_in': typeof Sign_inRoute
   '/sign_up': typeof Sign_upRoute
+  '/chats/$chatId': typeof ChatsChatIdRoute
+  '/profile/$userId': typeof ProfileUserIdRoute
+  '/chats/': typeof ChatsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/onboarding' | '/sign_in' | '/sign_up'
+  fullPaths:
+    | '/'
+    | '/liked_you'
+    | '/match'
+    | '/onboarding'
+    | '/sign_in'
+    | '/sign_up'
+    | '/chats/$chatId'
+    | '/profile/$userId'
+    | '/chats'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/onboarding' | '/sign_in' | '/sign_up'
-  id: '__root__' | '/' | '/onboarding' | '/sign_in' | '/sign_up'
+  to:
+    | '/'
+    | '/liked_you'
+    | '/match'
+    | '/onboarding'
+    | '/sign_in'
+    | '/sign_up'
+    | '/chats/$chatId'
+    | '/profile/$userId'
+    | '/chats'
+  id:
+    | '__root__'
+    | '/'
+    | '/liked_you'
+    | '/match'
+    | '/onboarding'
+    | '/sign_in'
+    | '/sign_up'
+    | '/chats/$chatId'
+    | '/profile/$userId'
+    | '/chats/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  Liked_youRoute: typeof Liked_youRoute
+  MatchRoute: typeof MatchRoute
   OnboardingRoute: typeof OnboardingRoute
   Sign_inRoute: typeof Sign_inRoute
   Sign_upRoute: typeof Sign_upRoute
+  ChatsChatIdRoute: typeof ChatsChatIdRoute
+  ProfileUserIdRoute: typeof ProfileUserIdRoute
+  ChatsIndexRoute: typeof ChatsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -92,6 +170,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/match': {
+      id: '/match'
+      path: '/match'
+      fullPath: '/match'
+      preLoaderRoute: typeof MatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/liked_you': {
+      id: '/liked_you'
+      path: '/liked_you'
+      fullPath: '/liked_you'
+      preLoaderRoute: typeof Liked_youRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -99,14 +191,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chats/': {
+      id: '/chats/'
+      path: '/chats'
+      fullPath: '/chats'
+      preLoaderRoute: typeof ChatsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$userId': {
+      id: '/profile/$userId'
+      path: '/profile/$userId'
+      fullPath: '/profile/$userId'
+      preLoaderRoute: typeof ProfileUserIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chats/$chatId': {
+      id: '/chats/$chatId'
+      path: '/chats/$chatId'
+      fullPath: '/chats/$chatId'
+      preLoaderRoute: typeof ChatsChatIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  Liked_youRoute: Liked_youRoute,
+  MatchRoute: MatchRoute,
   OnboardingRoute: OnboardingRoute,
   Sign_inRoute: Sign_inRoute,
   Sign_upRoute: Sign_upRoute,
+  ChatsChatIdRoute: ChatsChatIdRoute,
+  ProfileUserIdRoute: ProfileUserIdRoute,
+  ChatsIndexRoute: ChatsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

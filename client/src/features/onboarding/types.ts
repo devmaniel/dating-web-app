@@ -3,14 +3,14 @@ export type OnboardingStepOneFormProps = {
     firstName: string;
     middleName?: string;
     lastName: string;
-    birthdate: string;
+    birthdate?: string;
     gender: 'male' | 'female' | 'nonbinary';
   }) => void;
   initialData?: {
     firstName: string;
     middleName?: string;
     lastName: string;
-    birthdate: string;
+    birthdate?: string;
     gender: 'male' | 'female' | 'nonbinary';
   };
 };
