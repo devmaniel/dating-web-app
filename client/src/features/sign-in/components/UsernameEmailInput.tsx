@@ -13,7 +13,7 @@ export const UsernameEmailInput = forwardRef<HTMLInputElement, UsernameEmailInpu
           {...props}
           ref={ref}
           type="text"
-          className="flex-1 border-0 rounded-md h-12 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent placeholder:text-gray-600 px-3"
+          className="flex-1 border-0 rounded-md text-foreground h-12 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent placeholder:text-gray-600 px-3"
         />
       </div>
     );

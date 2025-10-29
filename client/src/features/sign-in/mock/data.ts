@@ -6,9 +6,9 @@ export type MockUser = {
 
 export const MOCK_USERS: MockUser[] = [
   {
-    email: 'johndoe@mail.com',
-    password: '!Password123',
-    username: 'johndoe',
+    email: 'j.doe@gmail.com',
+    password: '@Password123',
+    username: 'jean doe',
   },
 ];
 

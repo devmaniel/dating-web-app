@@ -9,13 +9,13 @@ import { SignUpFormHeader } from './components/SignUpFormHeader';
 import { GoogleSignUpButton } from './components/GoogleSignUpButton';
 import { FormDivider } from './components/FormDivider';
 import { EmailInput } from './components/EmailInput';
-import { UsernameInput } from './components/UsernameInput';
+import { BirthdayInput } from './components/BirthdayInput';
 import { PasswordInput } from './components/PasswordInput';
 import { ConfirmPasswordInput } from './components/ConfirmPasswordInput';
 import { SignUpAlert } from './components/SignUpAlert';
 import { PasswordStrengthIndicator } from './components/PasswordStrengthIndicator';
 import { PasswordRequirements } from './components/PasswordRequirements';
-import { checkEmailExists, checkUsernameExists } from './mock/data';
+import { checkEmailExists } from './mock/data';
 import type { SignUpFormProps, SignUpError } from './types';
 
 export function SignUpForm({ onSubmit, onGoogleSignUp }: SignUpFormProps = {}) {
@@ -28,7 +28,7 @@ export function SignUpForm({ onSubmit, onGoogleSignUp }: SignUpFormProps = {}) {
     register,
     handleSubmit,
     watch,
-    formState: { isSubmitting, isValid },
+    formState: { isSubmitting, isValid, errors },
   } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     mode: 'onChange',
@@ -62,11 +62,6 @@ export function SignUpForm({ onSubmit, onGoogleSignUp }: SignUpFormProps = {}) {
         return;
       }
 
-      // Check if username already exists
-      if (checkUsernameExists(data.username)) {
-        setError('username_exists');
-        return;
-      }
 
       // Simulate random server error (10% chance for testing)
       if (Math.random() < 0.1) {
@@ -164,14 +159,23 @@ export function SignUpForm({ onSubmit, onGoogleSignUp }: SignUpFormProps = {}) {
           </div>
 
           <div className="space-y-1">
-            <label htmlFor="username" className="text-sm font-medium text-black">
-              Username
+            <label htmlFor="birthdate" className="text-sm font-medium text-black">
+              Birthdate
             </label>
-            <UsernameInput
-              {...register('username')}
-              id="username"
-              placeholder="Choose a unique username"
+            <BirthdayInput
+              {...register('birthdate')}
+              id="birthdate"
+              hasError={!!errors.birthdate}
             />
+            {errors.birthdate ? (
+              <p className="text-xs text-destructive font-medium">
+                {errors.birthdate.message}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-600">
+                You must be at least 18 years old to sign up
+              </p>
+            )}
           </div>
 
           <div className="space-y-1">

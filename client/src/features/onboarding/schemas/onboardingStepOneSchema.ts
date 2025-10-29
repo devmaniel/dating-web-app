@@ -24,24 +24,9 @@ export const onboardingStepOneSchema = z.object({
     .trim(),
   birthdate: z
     .string()
-    .min(1, 'Birthdate is required')
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format')
-    .refine((val) => {
-      const date = new Date(val);
-      const currentDate = new Date();
-      const age = currentDate.getFullYear() - date.getFullYear();
-      const monthDiff = currentDate.getMonth() - date.getMonth();
-      const dayDiff = currentDate.getDate() - date.getDate();
-      
-      // Adjust age if birthday hasn't occurred this year
-      const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
-      
-      return actualAge >= 18;
-    }, 'You must be at least 18 years old')
-    .refine((val) => {
-      const date = new Date(val);
-      return !isNaN(date.getTime()) && date <= new Date();
-    }, 'Invalid date'),
+    .optional()
+    .or(z.literal(''))
+    .transform((val) => val || undefined),
   gender: z.enum(['male', 'female', 'nonbinary'], {
     required_error: 'Please select a gender',
     invalid_type_error: 'Please select a valid gender',

@@ -11,7 +11,7 @@ interface OnboardingProgressBarProps {
   totalSteps?: number;
 }
 
-export function OnboardingProgressBar({ currentStep, totalSteps = 7 }: OnboardingProgressBarProps) {
+export function OnboardingProgressBar({ currentStep, totalSteps = 8 }: OnboardingProgressBarProps) {
   const steps = Array.from({ length: totalSteps }, (_, i) => i + 1);
 
   return (

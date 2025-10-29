@@ -9,7 +9,7 @@ import {
 import type { DateValue as DateValueRac } from "react-aria-components"
 import type { TimeValue as TimeValueRac } from "react-aria"
 
-import { cn } from "@/shared/components/lib/utils"
+import { cn } from "@/lib/utils"
 import { dateInputStyle } from "./datefield-rac.constants"
 
 type DateFieldProps<T extends DateValueRac> = React.ComponentProps<typeof DateFieldRac<T>>
@@ -65,11 +65,13 @@ function DateSegment({ className, ...props }: DateSegmentProps) {
 interface DateInputProps extends DateInputPropsRac {
   className?: string
   unstyled?: boolean
+  segmentClassName?: string
 }
 
 function DateInput({
   className,
   unstyled = false,
+  segmentClassName,
   ...props
 }: Omit<DateInputProps, "children">) {
   return (
@@ -79,7 +81,7 @@ function DateInput({
       )}
       {...props}
     >
-      {(segment) => <DateSegment segment={segment} />}
+      {(segment) => <DateSegment segment={segment} className={segmentClassName} />}
     </DateInputRac>
   )
 }

@@ -9,7 +9,6 @@ type SignUpAlertProps = {
 export function SignUpAlert({ error }: SignUpAlertProps) {
   const errorMessages: Record<Exclude<SignUpError, null>, string> = {
     email_exists: 'This email is already registered. Please use a different email or sign in.',
-    username_exists: 'This username is already taken. Please choose a different one.',
     passwords_mismatch: "Passwords don't match. Please try again.",
     server_error: 'Something went wrong on our end. Please try again later.',
   };

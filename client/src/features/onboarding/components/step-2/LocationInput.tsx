@@ -153,7 +153,7 @@ export const LocationInput = React.forwardRef<HTMLDivElement, LocationInputProps
                 </div>
               ) : search.length < 3 ? (
                 <div className="px-3 py-2 text-sm text-muted-foreground text-center">
-                  Type at least 3 characters to search
+                  Search...
                 </div>
               ) : displayOptions.length === 0 ? (
                 <div className="px-3 py-2 text-sm text-muted-foreground text-center">

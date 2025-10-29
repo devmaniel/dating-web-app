@@ -21,11 +21,13 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
   const {
     register,
     handleSubmit,
-    formState: { isSubmitting, isValid },
+    formState: { isValid },
   } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
     mode: 'onChange',
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleFormSubmit = async (data: SignInFormData) => {
     setError(null);
@@ -40,20 +42,33 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
       if (isValidUser) {
         console.log('Login successful:', data);
         onSubmit?.(data);
-        // Navigate to home page
-        navigate({ to: '/' });
+        
+        // Show loading state for 5 seconds before redirecting
+        setIsSubmitting(true);
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        
+        // Navigate to onboarding page
+        navigate({ to: '/onboarding' });
       } else {
         setError('invalid_credentials');
       }
     } catch (err) {
       console.error('Sign in error:', err);
       setError('server_error');
+      setIsSubmitting(false);
     }
   };
 
-  const handleGoogleSignInClick = () => {
+  const handleGoogleSignInClick = async () => {
     console.log('Sign in with Google');
     onGoogleSignIn?.();
+    
+    // Show loading state for 5 seconds before redirecting
+    setIsSubmitting(true);
+    await new Promise((resolve) => setTimeout(resolve, 5000));
+    
+    // Navigate to onboarding page
+    navigate({ to: '/onboarding' });
   };
 
   const handleForgotPassword = () => {
@@ -73,7 +88,7 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
         <SignInFormHeader />
 
         <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <GoogleSignInButton onClick={handleGoogleSignInClick} />
+          <GoogleSignInButton onClick={handleGoogleSignInClick} disabled={isSubmitting} />
 
           <FormDivider />
 
@@ -101,7 +116,7 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
 
           <Button
             type="submit"
-            disabled={!isFormValid}
+            disabled={!isFormValid || isSubmitting}
             className="w-full h-12 rounded-full text-base"
           >
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

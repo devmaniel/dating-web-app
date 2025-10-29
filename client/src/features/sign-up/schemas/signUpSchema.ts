@@ -10,12 +10,21 @@ export const signUpSchema = z
       .min(1, 'Email is required')
       .email('Invalid email address')
       .trim(),
-    username: z
+    birthdate: z
       .string()
-      .min(3, 'Username must be at least 3 characters')
-      .max(20, 'Username must be less than 20 characters')
-      .regex(/^[a-zA-Z0-9._]+$/, 'Username can only contain letters, numbers, dots, and underscores')
-      .trim(),
+      .min(1, 'Birthdate is required')
+      .refine((date) => {
+        const birthDate = new Date(date);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        const dayDiff = today.getDate() - birthDate.getDate();
+        
+        // Calculate exact age
+        const exactAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+        
+        return exactAge >= 18;
+      }, 'You must be at least 18 years old'),
     password: z
       .string()
       .min(8, 'Password must be at least 8 characters')

@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { OnboardingStepZero } from './OnboardingStepZero';
-import { OnboardingStepOne } from './OnboardingStepOne';
-import { OnboardingStepTwo } from './OnboardingStepTwo';
-import { OnboardingStepThree } from './OnboardingStepThree';
-import { OnboardingStepFour } from './OnboardingStepFour';
-import { OnboardingStepFive } from './OnboardingStepFive';
-import { OnboardingStepSix } from './OnboardingStepSix';
-import { OnboardingStepSeven } from './OnboardingStepSeven';
+import { useNavigate } from '@tanstack/react-router';
+import { OnboardingStepZero } from './components/OnboardingStepZero';
+import { OnboardingStepOne } from './components/step-1/OnboardingStepOne';
+import { OnboardingStepTwo } from './components/step-2/OnboardingStepTwo';
+import { OnboardingStepThree } from './components/step-3/OnboardingStepThree';
+import { OnboardingStepFour } from './components/step-4/OnboardingStepFour';
+import { OnboardingStepFive } from './components/step-5/OnboardingStepFive';
+import { OnboardingStepSix } from './components/step-6/OnboardingStepSix';
+import { OnboardingStepSeven } from './components/step-7/OnboardingStepSeven';
+import { OnboardingStepEight } from './components/step-8/OnboardingStepEight';
+import { OnboardingLoading } from './components/loading/OnboardingLoading';
 import type { OnboardingStepOneFormData } from './schemas/onboardingStepOneSchema';
 import type { OnboardingStepTwoFormData } from './schemas/onboardingStepTwoSchema';
 import type { OnboardingStepThreeFormData } from './schemas/onboardingStepThreeSchema';
@@ -14,8 +17,10 @@ import type { OnboardingStepFourFormData } from './schemas/onboardingStepFourSch
 import type { OnboardingStepFiveFormData } from './schemas/onboardingStepFiveSchema';
 import type { OnboardingStepSixFormData } from './schemas/onboardingStepSixSchema';
 import type { OnboardingStepSevenFormData } from './schemas/onboardingStepSevenSchema';
+import type { OnboardingStepEightFormData } from './schemas/onboardingStepEightSchema';
+import { philippineSchools, educationPrograms } from './schemas/onboardingStepTwoSchema';
 
-export type OnboardingStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type OnboardingStep = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export interface OnboardingState {
   currentStep: OnboardingStep;
@@ -27,14 +32,29 @@ export interface OnboardingState {
     step5?: OnboardingStepFiveFormData;
     step6?: OnboardingStepSixFormData;
     step7?: OnboardingStepSevenFormData;
+    step8?: OnboardingStepEightFormData;
   };
 }
 
 export function Onboarding() {
+  const navigate = useNavigate();
   const [state, setState] = useState<OnboardingState>({
     currentStep: 0,
     stepData: {},
   });
+
+  // Helper functions to get full names
+  const getFullSchoolName = (schoolValue?: string) => {
+    if (!schoolValue) return '';
+    const school = philippineSchools.find(s => s.value === schoolValue);
+    return school ? school.label : schoolValue;
+  };
+
+  const getFullProgramName = (programValue?: string) => {
+    if (!programValue) return '';
+    const program = educationPrograms.find(p => p.value === programValue);
+    return program ? program.label : programValue;
+  };
 
   const handleStepZeroNext = () => {
     setState((prev) => ({
@@ -116,9 +136,22 @@ export function Onboarding() {
         ...prev.stepData,
         step7: data,
       },
+      currentStep: 8,
     }));
+  };
+
+  const handleStepEightSubmit = () => {
+    // Move to loading step before final submission
+    setState((prev) => ({
+      ...prev,
+      currentStep: 9,
+    }));
+  };
+
+  const handleLoadingComplete = () => {
     // Handle final submission (e.g., API call)
-    console.log('Onboarding complete:', { ...state.stepData, step7: data });
+    console.log('Onboarding complete:', state.stepData);
+    navigate({ to: '/match' });
   };
 
   const handlePreviousStep = () => {
@@ -189,6 +222,68 @@ export function Onboarding() {
             onSubmit={handleStepSevenSubmit}
             onBack={handlePreviousStep}
             initialData={state.stepData.step7}
+          />
+        );
+      case 8:
+        return (
+          <OnboardingStepEight
+            onSubmit={handleStepEightSubmit}
+            onBack={handlePreviousStep}
+            profileData={{
+              // Personal Information
+              name: state.stepData.step1?.firstName,
+              middleName: state.stepData.step1?.middleName,
+              lastName: state.stepData.step1?.lastName,
+              age: state.stepData.step1?.birthdate ? new Date().getFullYear() - new Date(state.stepData.step1.birthdate).getFullYear() : undefined,
+              gender: state.stepData.step1?.gender,
+              
+              // Location & Education
+              location: state.stepData.step2?.location ? 
+                (() => {
+                  const parts = state.stepData.step2!.location!.split(',').map(part => part.trim());
+                  // For locations like "Forbes Park, Makati, Metro Manila", we want "Makati"
+                  // For locations like "Makati, Metro Manila", we want "Makati"
+                  // For locations like "Makati", we want "Makati"
+                  return parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+                })() 
+                : undefined,
+              school: getFullSchoolName(state.stepData.step2?.school),
+              program: getFullProgramName(state.stepData.step2?.program),
+              education: state.stepData.step2?.school && state.stepData.step2?.program 
+                ? `${getFullProgramName(state.stepData.step2.program)} at ${getFullSchoolName(state.stepData.step2.school)}` 
+                : undefined,
+              
+              // Preferences
+              openForEveryone: state.stepData.step3?.openForEveryone,
+              genderPreferences: state.stepData.step3?.genderPreferences,
+              purposes: state.stepData.step3?.purposes,
+              
+              // Profile Content
+              lookingFor: state.stepData.step4?.lookingFor,
+              interests: state.stepData.step5?.interests,
+              aboutMe: state.stepData.step5?.interests?.join(', '),
+              
+              // Media
+              cardPreviewUrl: state.stepData.step7?.cardPreview ? URL.createObjectURL(state.stepData.step7.cardPreview) : undefined,
+              albumPhotos: state.stepData.step7?.albums?.map((file, index) => ({
+                id: `album-${index}`,
+                url: URL.createObjectURL(file),
+                name: `Photo ${index + 1}`
+              })),
+              
+              // Music
+              musicGenres: state.stepData.step6?.favoriteSongs?.map(song => song.albumName) || [],
+              musicArtists: state.stepData.step6?.favoriteSongs?.map(song => song.artists.map(a => a.name).join(', ')) || [],
+              musicSongs: state.stepData.step6?.favoriteSongs?.map(song => song.name) || [],
+              musicAlbumCovers: state.stepData.step6?.favoriteSongs?.map(song => song.albumCoverUrl) || []
+            }}
+          />
+        );
+      case 9:
+        return (
+          <OnboardingLoading
+            onComplete={handleLoadingComplete}
+            duration={5000}
           />
         );
       default:
