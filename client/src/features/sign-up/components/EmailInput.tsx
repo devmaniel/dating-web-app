@@ -25,7 +25,7 @@ export const EmailInput = forwardRef<HTMLInputElement, EmailInputProps>(
           ref={ref}
           type="email"
           disabled={!isEditable || props.disabled}
-          className="flex-1 border-0  rounded-md text-black h-12 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent placeholder:text-gray-600 px-3 disabled:opacity-100 disabled:cursor-default"
+          className="flex-1 border-0 rounded-md text-black h-12 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent placeholder:text-gray-600 px-3 disabled:opacity-100 disabled:cursor-default"
         />
         {showChangeButton && !isEditable && (
           <Button
