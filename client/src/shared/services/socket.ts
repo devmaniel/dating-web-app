@@ -131,7 +131,9 @@ export function initializeSocket(token: string): Socket {
   });
 
   socket.on('connect_error', (error) => {
-    console.error('Socket.IO connection error:', error.message);
+    console.error('❌ Socket.IO connection error:', error.message);
+    console.error('Server URL:', serverUrl);
+    console.error('Error details:', error);
   });
 
   return socket;
