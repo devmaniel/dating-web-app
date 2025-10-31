@@ -4,6 +4,21 @@ const { checkDatabaseHealth } = require('../services/healthCheck');
 const { s3Client, S3_CONFIG } = require('../config/s3');
 
 /**
+ * GET /ping
+ * Simple ping endpoint to test API connectivity from frontend
+ * Returns immediately without checking services
+ */
+router.get('/ping', (req, res) => {
+  res.json({
+    success: true,
+    message: 'pong',
+    timestamp: new Date().toISOString(),
+    server: 'dating-app-api',
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+/**
  * GET /health
  * Returns comprehensive health status of the application, database, and S3
  */
