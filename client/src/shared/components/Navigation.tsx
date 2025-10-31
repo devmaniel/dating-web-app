@@ -1,8 +1,8 @@
 import { Link, useMatchRoute } from '@tanstack/react-router';
 import { cn } from '@/shared/utils/cn';
 import { useTheme } from '@/shared/contexts/theme-context';
-import { useLikedYouStore } from '@/shared/stores/likedYouStore';
-import { useChatsStore } from '@/shared/stores/chatsStore';
+import { useLikedYouCount } from '@/shared/hooks/useLikedYouCount';
+import { useConversations } from '@/features/chats/hooks/useConversations';
 import MatchLightIcon from '@/assets/svgs/Match - Light.svg';
 import MatchDarkIcon from '@/assets/svgs/Match - Dark.svg';
 import LikeLightIcon from '@/assets/svgs/Like - Light.svg';
@@ -27,8 +27,11 @@ const tabs: Tab[] = [
 export const Navigation = () => {
   const matchRoute = useMatchRoute();
   const { resolvedTheme } = useTheme();
-  const { pendingCount } = useLikedYouStore();
-  const { unreadCount } = useChatsStore();
+  const { count: likedYouCount } = useLikedYouCount(); // Lightweight count query with real-time updates
+  const { chats } = useConversations(); // Get real-time conversations with actual unread counts
+  
+  // Calculate total unread count from conversations
+  const unreadCount = chats.reduce((total, chat) => total + (chat.unreadCount || 0), 0);
 
   return (
     <nav className="inline-flex items-center gap-2 rounded-full">
@@ -53,14 +56,14 @@ export const Navigation = () => {
           >
             <img src={icon} alt={label} className="w-5 h-5 flex-shrink-0" />
             <span className="text-sm whitespace-nowrap">{label}</span>
-            {id === 'like-you' && (
+            {id === 'like-you' && likedYouCount > 0 && (
               <div className={cn(
                 'flex items-center justify-center w-5 h-5 rounded-full text-xs font-semibold',
                 isActive 
                   ? 'bg-background text-foreground' 
                   : 'bg-primary text-primary-foreground'
               )}>
-                {pendingCount}
+                {likedYouCount}
               </div>
             )}
             {id === 'chats' && unreadCount > 0 && (

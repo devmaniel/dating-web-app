@@ -1,39 +1,36 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useEffect } from 'react';
-import { MainLayout } from '@/shared/layouts';
 import Index from '@/features/liked_you/Index';
-import { ActionButtons } from '@/features/liked_you/components/ActionButtons';
-import { useSwipe, SwipeProvider } from '@/features/liked_you/contexts/SwipeContext';
-import { sampleProfiles } from '@/features/liked_you/data/profiles';
-import { useLikedYouStore } from '@/shared/stores/likedYouStore';
+import { SwipeProvider } from '@/features/liked_you/contexts/SwipeContext';
+import { useReceivedLikes } from '@/features/liked_you/hooks/useReceivedLikes';
+import { ProtectedLayout } from '@/shared/layouts';
 
 export const Route = createFileRoute('/liked_you')({
   component: LikedYouPage,
 });
 
 function LikedYouPage() {
-  const { initializePending, isInitialized } = useLikedYouStore();
+  const { profiles, isLoading, error, removeProfile } = useReceivedLikes();
 
-  // Initialize pending profiles on mount (only once)
-  useEffect(() => {
-    // Only initialize if store has never been initialized
-    if (!isInitialized) {
-      const profileIds = sampleProfiles.map(profile => profile.id);
-      initializePending(profileIds);
-    }
-  }, [initializePending, isInitialized]);
+  console.log('[LikedYouPage] Profiles from API:', profiles.length);
+  console.log('[LikedYouPage] Display profiles:', profiles.length);
+  console.log('[LikedYouPage] isLoading:', isLoading);
+  if (profiles.length > 0) {
+    console.log('[LikedYouPage] First profile:', profiles[0]);
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
 
   return (
-    <SwipeProvider profiles={sampleProfiles}>
-      <MainLayout actionButtons={<ActionButtonsWithUndo />}>  
-        <Index />
-      </MainLayout>
-    </SwipeProvider>
+    <ProtectedLayout>
+      <SwipeProvider profiles={profiles} removeProfile={removeProfile}>
+        <Index isLoading={isLoading} />
+      </SwipeProvider>
+    </ProtectedLayout>
   );
 }
-
-const ActionButtonsWithUndo = () => {
-  const { handleUndo } = useSwipe();
-  
-  return <ActionButtons onUndo={handleUndo} />;
-};

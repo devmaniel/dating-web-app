@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from '@tanstack/react-router';
@@ -11,12 +10,12 @@ import { FormDivider } from './components/FormDivider';
 import { UsernameEmailInput } from './components/UsernameEmailInput';
 import { PasswordInput } from './components/PasswordInput';
 import { SignInAlert } from './components/SignInAlert';
-import { validateCredentials } from './mock/data';
-import type { SignInFormProps, SignInError } from './types/types';
+import { useSignIn } from './hooks/useSignIn';
+import type { SignInFormProps } from './types/types';
 
 export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
   const navigate = useNavigate();
-  const [error, setError] = useState<SignInError>(null);
+  const { isLoading, error, signIn } = useSignIn();
 
   const {
     register,
@@ -27,35 +26,31 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
     mode: 'onChange',
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const handleFormSubmit = async (data: SignInFormData) => {
-    setError(null);
-
+  const handleFormSubmit = async (data: SignInFormData, event?: React.BaseSyntheticEvent) => {
+    // Explicitly prevent default form submission behavior
+    event?.preventDefault();
+    
+    console.log('📝 Form submitted with data:', data);
+    
     try {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await signIn({
+        email: data.usernameOrEmail,
+        password: data.password,
+      });
 
-      // Validate credentials against mock data
-      const isValidUser = validateCredentials(data.usernameOrEmail, data.password);
-
-      if (isValidUser) {
-        console.log('Login successful:', data);
+      if (response.success) {
+        console.log('✅ Sign in successful, navigating to /match');
         onSubmit?.(data);
         
-        // Show loading state for 5 seconds before redirecting
-        setIsSubmitting(true);
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-        
-        // Navigate to onboarding page
-        navigate({ to: '/onboarding' });
+        // Navigate to match page
+        navigate({ to: '/match' });
       } else {
-        setError('invalid_credentials');
+        // Error is already set in useSignIn hook state
+        console.log('❌ Sign in failed, error displayed:', response.error);
       }
     } catch (err) {
-      console.error('Sign in error:', err);
-      setError('server_error');
-      setIsSubmitting(false);
+      console.error('❌ Unexpected sign in error:', err);
+      // Error should be handled by useSignIn hook
     }
   };
 
@@ -63,12 +58,8 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
     console.log('Sign in with Google');
     onGoogleSignIn?.();
     
-    // Show loading state for 5 seconds before redirecting
-    setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-    
-    // Navigate to onboarding page
-    navigate({ to: '/onboarding' });
+    // Navigate to match page
+    navigate({ to: '/match' });
   };
 
   const handleForgotPassword = () => {
@@ -80,15 +71,23 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
     navigate({ to: '/sign_up' });
   };
 
-  const isFormValid = isValid && !isSubmitting;
+  const isFormValid = isValid && !isLoading;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="w-full max-w-md space-y-8">
         <SignInFormHeader />
 
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-          <GoogleSignInButton onClick={handleGoogleSignInClick} disabled={isSubmitting} />
+        <form 
+          onSubmit={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            handleSubmit(handleFormSubmit)(e);
+            return false;
+          }} 
+          className="space-y-4"
+        >
+          <GoogleSignInButton onClick={handleGoogleSignInClick} disabled={isLoading} />
 
           <FormDivider />
 
@@ -116,11 +115,11 @@ export function SignInForm({ onSubmit, onGoogleSignIn }: SignInFormProps = {}) {
 
           <Button
             type="submit"
-            disabled={!isFormValid || isSubmitting}
+            disabled={!isFormValid || isLoading}
             className="w-full h-12 rounded-full text-base"
           >
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isSubmitting ? 'Signing In...' : 'Sign In'}
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </Button>
 
           <div className="text-center text-sm">

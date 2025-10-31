@@ -21,7 +21,7 @@ export const MoreInformation = ({ profile }: MoreInformationProps) => {
     <>
       <div className="w-full space-y-10">
         <AboutMe content={profile.aboutMe} />
-        <Interest />
+        <Interest interests={profile.interests} />
         <LookingFor content={profile.lookingFor} />
         <Music 
           genres={profile.musicGenres}

@@ -13,7 +13,7 @@ export const PasswordInput = forwardRef<HTMLInputElement, PasswordInputProps>(
           {...props}
           ref={ref}
           type="password"
-          className="flex-1 border-0 bg-transparent rounded-md h-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-600 text-foreground px-3"
+          className="flex-1 border-0 text-black bg-transparent rounded-md h-12 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-gray-600 px-3"
         />
       </div>
     );

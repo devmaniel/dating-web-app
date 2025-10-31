@@ -3,7 +3,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { MoveRight } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { onboardingStepTwoSchema, type OnboardingStepTwoFormData } from '../../schemas/onboardingStepTwoSchema';
-import { LocationInput, SchoolInput, ProgramInput } from '.';
+import { LocationInput, SchoolInput, ProgramInput, AboutMeInput } from '.';
 import { OnboardingLayout } from '..';
 
 export interface OnboardingStepTwoFormProps {
@@ -25,6 +25,7 @@ export function OnboardingStepTwo({ onSubmit, onBack, initialData }: OnboardingS
       location: '',
       school: '',
       program: '',
+      aboutMe: '',
     },
   });
 
@@ -41,6 +42,7 @@ export function OnboardingStepTwo({ onSubmit, onBack, initialData }: OnboardingS
   const formValues = watch();
   
   // Check if all required fields are filled and have no errors
+  // aboutMe is optional, so we don't check it
   const isFormValid = 
     formValues.location.trim().length >= 2 &&
     formValues.school.trim().length >= 2 &&
@@ -114,6 +116,26 @@ export function OnboardingStepTwo({ onSubmit, onBack, initialData }: OnboardingS
               />
               {errors.program && (
                 <p className="text-sm text-red-500">{errors.program.message}</p>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label htmlFor="aboutMe" className="text-base font-medium text-foreground">
+                About Me <span className="text-muted-foreground text-sm font-normal">(Optional)</span>
+              </label>
+              <Controller
+                name="aboutMe"
+                control={control}
+                render={({ field }) => (
+                  <AboutMeInput
+                    value={field.value || ''}
+                    onChange={field.onChange}
+                    id="aboutMe"
+                  />
+                )}
+              />
+              {errors.aboutMe && (
+                <p className="text-sm text-red-500">{errors.aboutMe.message}</p>
               )}
             </div>
 

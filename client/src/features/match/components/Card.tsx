@@ -10,7 +10,8 @@ export const Card = ({
   previousDecision,
   purposes = [],
   location = "Manila",
-  distanceKm = 0
+  distanceKm = 0,
+  isLoading = false
 }: { 
   children?: React.ReactNode;
   name?: string;
@@ -21,6 +22,7 @@ export const Card = ({
   purposes?: Array<'study-buddy' | 'date' | 'bizz'>;
   location?: string;
   distanceKm?: number;
+  isLoading?: boolean;
 }) => {
   const purposeConfig = {
     'study-buddy': { label: 'Looking for a Study Buddy', icon: <FaBook className="inline mr-1" /> },
@@ -30,19 +32,14 @@ export const Card = ({
   return (
     <div className="w-full h-[400px] md:h-[450px] bg-foreground rounded-xl relative overflow-hidden flex items-center justify-center">
       {/* Profile Image */}
-      <img 
-        src={imageUrl} 
-        alt="Profile" 
-        className="max-h-full max-w-full object-contain bg-black opacity-80"
-      />
-      
-      {/* Previous decision indicator */}
-      {previousDecision && (
-        <div className="absolute top-4 right-4">
-          <span className={`px-3 py-1 rounded-full text-xs font-bold ${previousDecision === 'matched' ? 'bg-primary text-white' : 'bg-destructive text-white'}`}>
-            {previousDecision === 'matched' ? 'previously matched' : 'previously rejected'}
-          </span>
-        </div>
+      {isLoading ? (
+        <div className="w-full h-full bg-gray-300 dark:bg-gray-600 animate-pulse" />
+      ) : (
+        <img 
+          src={imageUrl} 
+          alt="Profile" 
+          className="max-h-full max-w-full object-contain bg-black opacity-80"
+        />
       )}
       
       {/* Profile Information */}

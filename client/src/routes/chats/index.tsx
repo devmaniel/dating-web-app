@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { MainLayout } from '@/shared/layouts';
 import { IndexPage } from '@/features/chats/IndexPage';
+import { ProtectedLayout } from '@/shared/layouts';
 
 export const Route = createFileRoute('/chats/')({
   component: ChatsIndexPage,
@@ -8,8 +8,8 @@ export const Route = createFileRoute('/chats/')({
 
 function ChatsIndexPage() {
   return (
-    <MainLayout>
+    <ProtectedLayout>
       <IndexPage />
-    </MainLayout>
+    </ProtectedLayout>
   );
 }

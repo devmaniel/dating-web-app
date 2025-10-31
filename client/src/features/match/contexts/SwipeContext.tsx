@@ -1,12 +1,15 @@
-import { createContext, useContext, useState, useMemo } from 'react';
+import { createContext, useContext, useState, useMemo, useEffect } from 'react';
 import type { Profile } from '../data/profiles';
 import { useLikes } from '@/shared/contexts/LikeContext';
+import { useSendLike } from '../hooks/useSendLike';
+import { useSendReject } from '../hooks/useSendReject';
+import { useAuthStore } from '@/shared/stores/authStore';
 
 export interface FilterSettings {
   genderPreferences: Array<'male' | 'female' | 'nonbinary'>;
   purposes: Array<'study-buddy' | 'date' | 'bizz'>;
   ageRange: { min: number; max: number };
-  maxDistance: number;
+  distanceRange: { min: number; max: number };
 }
 
 interface SwipeContextType {
@@ -35,42 +38,80 @@ export const SwipeProvider = ({ children, profiles }: SwipeProviderProps) => {
   const [filters, setFilters] = useState<FilterSettings>({
     genderPreferences: ['male', 'female', 'nonbinary'],
     purposes: ['study-buddy', 'date', 'bizz'],
-    ageRange: { min: 18, max: 99 },
-    maxDistance: 100
+    ageRange: { min: 18, max: 25 },
+    distanceRange: { min: 0, max: 100 }
   });
   const { addLike, removeLike } = useLikes();
+  const { send: sendLikeToBackend } = useSendLike();
+  const { reject: sendRejectToBackend } = useSendReject();
+  const { user } = useAuthStore();
+
+  // Reset swipe state when profiles change (e.g., when API data loads)
+  useEffect(() => {
+    console.log('[SwipeContext] Profiles changed, resetting state. Count:', profiles.length);
+    setCurrentIndex(0);
+    setSwipeDecisions([]);
+    setSwipedProfiles(new Map());
+  }, [profiles.length]);
 
   // Filter profiles based on current filter settings
+  // Filters by: gender, age, and distance (age is client-side only, not in DB)
   const filteredProfiles = useMemo(() => {
-    return profiles.filter(profile => {
+    const filtered = profiles.filter(profile => {
       // Check if profile gender matches preferences
       const matchesGender = filters.genderPreferences.includes(profile.gender);
       
-      // Check if profile has at least one matching purpose
-      const hasMatchingPurpose = profile.purposes.some(purpose => 
-        filters.purposes.includes(purpose)
-      );
-      
-      // Check if profile age is within range
+      // Check if profile age is within range (client-side filtering)
       const matchesAge = profile.age >= filters.ageRange.min && profile.age <= filters.ageRange.max;
       
-      // Check if profile distance is within max distance
-      const matchesDistance = profile.distanceKm <= filters.maxDistance;
+      // Check if profile distance is within range (min and max)
+      const matchesDistance = profile.distanceKm >= filters.distanceRange.min && 
+                             profile.distanceKm <= filters.distanceRange.max;
       
-      return matchesGender && hasMatchingPurpose && matchesAge && matchesDistance;
+      return matchesGender && matchesAge && matchesDistance;
     });
+    
+    console.log('[SwipeContext] Total profiles:', profiles.length);
+    console.log('[SwipeContext] Filtered profiles:', filtered.length);
+    console.log('[SwipeContext] First filtered profile:', filtered[0]);
+    
+    return filtered;
   }, [profiles, filters]);
 
-  const handleSwipe = (direction: 'left' | 'right') => {
+  const handleSwipe = async (direction: 'left' | 'right') => {
     // Record which profile was swiped with what decision
-    const profileId = filteredProfiles[currentIndex].id;
+    const profile = filteredProfiles[currentIndex];
+    const profileId = profile.id;
     setSwipedProfiles(prev => new Map(prev).set(profileId, direction));
     
     // Update global like context
     if (direction === 'right') {
       addLike(profileId);
+      
+      // Send like to backend if user is authenticated
+      if (user?.id && profile.userId) {
+        try {
+          await sendLikeToBackend(profile.userId);
+          console.log('✅ Like sent to backend for profile:', profileId);
+        } catch (error) {
+          console.error('❌ Failed to send like to backend:', error);
+          // Don't block the UI - like is still recorded locally
+        }
+      }
     } else {
       removeLike(profileId);
+      
+      // Send rejection to backend if user is authenticated
+      // This prevents the profile from appearing again in Match page
+      if (user?.id && profile.userId) {
+        try {
+          await sendRejectToBackend(profile.userId);
+          console.log('✅ Rejection sent to backend for profile:', profileId);
+        } catch (error) {
+          console.error('❌ Failed to send rejection to backend:', error);
+          // Don't block the UI - rejection is still recorded locally
+        }
+      }
     }
     
     setCurrentIndex(prev => prev + 1);

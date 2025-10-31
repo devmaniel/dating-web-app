@@ -5,7 +5,8 @@ export const onboardingStepSevenSchema = z.object({
   pfp: z.instanceof(File, { message: 'Profile picture is required' }),
   albums: z.array(z.instanceof(File))
     .max(6, 'You can upload up to 6 album photos')
-    .optional(),
+    .optional()
+    .default([]),
 });
 
 export type OnboardingStepSevenFormData = z.infer<typeof onboardingStepSevenSchema>;

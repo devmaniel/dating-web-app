@@ -24,15 +24,15 @@ export const EmailInput = forwardRef<HTMLInputElement, EmailInputProps>(
           {...props}
           ref={ref}
           type="email"
-          disabled={!isEditable}
-          className="flex-1 border-0 rounded-md h-12 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent placeholder:text-gray-600 px-3 disabled:opacity-100 disabled:cursor-default"
+          disabled={!isEditable || props.disabled}
+          className="flex-1 border-0  rounded-md text-black h-12 focus-visible:ring-0 focus-visible:ring-offset-0 bg-transparent placeholder:text-gray-600 px-3 disabled:opacity-100 disabled:cursor-default"
         />
         {showChangeButton && !isEditable && (
           <Button
             type="button"
             onClick={handleChange}
             variant="ghost"
-            className="text-sm text-gray-600 mr-2 h-8 px-3 hover:bg-transparent hover:text-black"
+            className="text-sm text-black text-gray-600 mr-2 h-8 px-3 hover:bg-transparent hover:text-black"
           >
             Change
           </Button>

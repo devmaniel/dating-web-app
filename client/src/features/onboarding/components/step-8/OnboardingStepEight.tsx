@@ -1,10 +1,11 @@
 import { MoveRight, User, MapPin, School, Heart } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { OnboardingLayout } from "..";
-import { Card } from "@/features/match/components/Card";
+import { Card } from "@/shared/components/match-or-liked-you/card/Card";
 import { LookingFor } from "@/features/match/components/LookingFor";
 import { Album } from "@/features/match/components/Album";
 import { InterestDisplay } from "./InterestDisplay";
+import { useState, useEffect } from "react";
 
 export interface OnboardingStepEightFormProps {
   onSubmit?: () => void;
@@ -52,6 +53,28 @@ export function OnboardingStepEight({
   onBack,
   profileData = {},
 }: OnboardingStepEightFormProps = {}) {
+  // Loading state for profile picture
+  const [isImageLoading, setIsImageLoading] = useState(true);
+
+  // Debug: Log the music album covers
+  console.log('OnboardingStepEight - musicAlbumCovers:', profileData.musicAlbumCovers);
+  console.log('OnboardingStepEight - musicSongs:', profileData.musicSongs);
+  console.log('OnboardingStepEight - musicArtists:', profileData.musicArtists);
+  
+  // Check if cardPreviewUrl is available
+  useEffect(() => {
+    if (profileData.cardPreviewUrl) {
+      // Simulate loading for a brief moment to show skeleton
+      const timer = setTimeout(() => {
+        setIsImageLoading(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    } else {
+      // If no image URL, keep loading state until it's available
+      setIsImageLoading(true);
+    }
+  }, [profileData.cardPreviewUrl]);
+
   // Default values for preview
   const {
     // Personal Information
@@ -118,14 +141,13 @@ export function OnboardingStepEight({
     (g) => genderLabels[g] || g
   );
 
-  // Format location to show only city for privacy
+  // Format location to show only city
   const cityOnly = location
     ? (() => {
         const parts = location.split(",").map((part) => part.trim());
-        // For locations like "Forbes Park, Makati, Metro Manila", we want "Makati"
-        // For locations like "Makati, Metro Manila", we want "Makati"
-        // For locations like "Makati", we want "Makati"
-        return parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+        // Database stores "City, State" format (e.g., "Makati, Metro Manila")
+        // We want to display just the city (first part)
+        return parts[0];
       })()
     : "Not provided";
 
@@ -156,6 +178,9 @@ export function OnboardingStepEight({
                 location={cityOnly}
                 distanceKm={0}
                 purposes={purposes}
+                gender={gender}
+                school={school}
+                program={program}
               />
             </div>
 
@@ -287,37 +312,46 @@ export function OnboardingStepEight({
                 </div>
               </div>
 
-              {/* About Me Section */}
-              <div className="space-y-2">
-                <p className="text-light text-gray-600">About Me</p>
-                <h3 className="text-2xl">
-                  {aboutMe || "No about me information provided"}
-                </h3>
-              </div>
+              {/* About Me Section - Only show if content exists */}
+              {aboutMe && aboutMe.trim() && (
+                <div className="space-y-2">
+                  <p className="text-light text-gray-600">About Me</p>
+                  <h3 className="text-2xl">
+                    {aboutMe}
+                  </h3>
+                </div>
+              )}
 
               {/* Interests Section */}
               <InterestDisplay selectedInterests={interests || []} />
 
-              {/* Looking For Section */}
-              <LookingFor content={lookingFor} />
+              {/* Looking For Section - Only show if content exists */}
+              {lookingFor && lookingFor.trim() && (
+                <LookingFor content={lookingFor} />
+              )}
 
-              {/* Music Section */}
+              {/* Music Section - Only show if user added songs */}
+              {musicSongs && musicSongs.length > 0 && (
               <div className="space-y-2">
-                <p className="text-light text-gray-600">Your Top Soundtracks (1-6)</p>
+                <p className="text-light text-gray-600">Your Top Soundtracks (1-{musicSongs.length})</p>
                 <div className="w-full flex flex-col gap-5 justify-center">
+                  {/* First Song - Large Display */}
                   <div className="flex justify-between items-center">
                     <div className="flex items-center w-full">
-                      {musicAlbumCovers && musicAlbumCovers[0] ? (
-                        <div className="relative">
-                          <div className="bg-gray-600 h-72 w-72 rounded-sm"></div>
-                          <img
-                            src={musicAlbumCovers[0]}
-                            alt="Album Cover"
-                            className="absolute inset-0 w-72 h-72 object-cover rounded-sm"
-                          />
-                        </div>
+                      {musicAlbumCovers && musicAlbumCovers.length > 0 && musicAlbumCovers[0] ? (
+                        <img
+                          src={musicAlbumCovers[0]}
+                          alt="Album Cover"
+                          className="w-72 h-72 object-cover rounded-sm flex-shrink-0"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '';
+                            target.alt = 'Failed to load';
+                            target.className = 'bg-gray-600 h-72 w-72 rounded-sm flex-shrink-0 flex items-center justify-center text-white text-sm';
+                          }}
+                        />
                       ) : (
-                        <div className="bg-gray-600 h-72 w-72 rounded-sm"></div>
+                        <div className="bg-gray-600 h-72 w-72 rounded-sm flex-shrink-0 flex items-center justify-center text-white text-sm">No Album Cover</div>
                       )}
                       <img
                         src="/src/assets/png/half-vinyl.png"
@@ -330,58 +364,67 @@ export function OnboardingStepEight({
                       <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center mb-2">
                         <span className="text-primary-foreground font-bold text-sm">1</span>
                       </div>
-                      <p className="text-light text-muted-foreground">Artist</p>
-                      <h3 className="text-2xl">Hold on</h3>
-                      <p className="text-light text-muted-foreground">Album</p>
+                      <p className="text-light text-muted-foreground">{musicArtists[0] || "Unknown Artist"}</p>
+                      <h3 className="text-2xl">{musicSongs[0]}</h3>
+                      <p className="text-light text-muted-foreground">{musicGenres[0] || "Unknown Genre"}</p>
                     </div>
                   </div>
 
-                  <div className="space-y-2 w-full">
-                    {musicSongs && musicSongs.length > 1
-                      ? musicSongs.slice(1).map((song, index) => (
-                          <div
-                            key={index}
-                            className="bg-foreground text-background flex items-center p-4 w-full rounded-sm"
-                          >
-                            {/* Number indicator */}
-                            <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-4">
-                              <span className="text-primary-foreground font-bold text-sm">{index + 2}</span>
-                            </div>
-                            
-                            <div className="flex gap-3">
-                              {/* Album Cover */}
-                              {musicAlbumCovers &&
-                              musicAlbumCovers[index + 1] ? (
-                                <img
-                                  src={musicAlbumCovers[index + 1]}
-                                  alt="Album Cover"
-                                  className="w-28 h-28 rounded object-cover flex-shrink-0"
-                                />
-                              ) : (
-                                <div className="bg-gray-600 w-28 h-28 rounded-sm flex-shrink-0" />
-                              )}
-                              <div className="space-y-1 flex justify-center flex-col">
-                                <h1 className="text-sm">
-                                  {musicArtists[index + 1] || "Unknown Artist"}
-                                </h1>
-                                <h1 className="text-lg font-semibold">
-                                  {song}
-                                </h1>
-                                <p className="text-sm">
-                                  {musicGenres[index + 1] || "Unknown Album"}
-                                </p>
-                              </div>
+                  {/* Remaining Songs - List Display */}
+                  {musicSongs.length > 1 && (
+                    <div className="space-y-2 w-full">
+                      {musicSongs.slice(1).map((song, index) => (
+                        <div
+                          key={index}
+                          className="bg-foreground text-background flex items-center p-4 w-full rounded-sm"
+                        >
+                          {/* Number indicator */}
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center mr-4">
+                            <span className="text-primary-foreground font-bold text-sm">{index + 2}</span>
+                          </div>
+                          
+                          <div className="flex gap-3">
+                            {/* Album Cover */}
+                            {musicAlbumCovers &&
+                            musicAlbumCovers.length > index + 1 &&
+                            musicAlbumCovers[index + 1] ? (
+                              <img
+                                src={musicAlbumCovers[index + 1]}
+                                alt="Album Cover"
+                                className="w-28 h-28 rounded object-cover flex-shrink-0"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = '';
+                                  target.alt = 'Failed to load';
+                                  target.className = 'bg-gray-600 w-28 h-28 rounded-sm flex-shrink-0';
+                                }}
+                              />
+                            ) : (
+                              <div className="bg-gray-600 w-28 h-28 rounded-sm flex-shrink-0" />
+                            )}
+                            <div className="space-y-1 flex justify-center flex-col">
+                              <h1 className="text-sm">
+                                {musicArtists[index + 1] || "Unknown Artist"}
+                              </h1>
+                              <h1 className="text-lg font-semibold">
+                                {song}
+                              </h1>
+                              <p className="text-sm">
+                                {musicGenres[index + 1] || "Unknown Genre"}
+                              </p>
                             </div>
                           </div>
-                        ))
-                      : null}
-                  </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
+              )}
 
-              {/* Album Photos Section */}
+              {/* Album Photos Section - Only show if photos exist */}
               {albumPhotos && albumPhotos.length > 0 && (
-                <Album photos={albumPhotos} />
+                <Album photos={albumPhotos} isLoading={isImageLoading} />
               )}
             </div>
           </div>

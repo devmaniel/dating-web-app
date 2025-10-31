@@ -2,8 +2,8 @@ import type { CategorizedChats } from '../hooks/useChats';
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { UnmatchDialog } from './UnmatchDialog';
-import { ProfileDialog } from '@/shared/components/profile-dialog';
-import { mockChatProfiles } from '../data';
+import { ProfileDialog } from './ProfileDialog';
+import { useUserProfile } from '../hooks';
 import { formatMatchTimestamp } from '../utils/formatMatchTimestamp';
 
 interface ChatListProps {
@@ -19,8 +19,12 @@ export const ChatList = ({ categorizedChats, onUnmatch, onRestore, activeTab = '
   const [showUnmatchDialog, setShowUnmatchDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [selectedChatId, setSelectedChatId] = useState<number | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  
+  // Fetch profile data when a chat is selected
+  const { profile: selectedProfile, isLoading: isLoadingProfile, error: profileError } = useUserProfile(selectedUserId);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -63,8 +67,16 @@ export const ChatList = ({ categorizedChats, onUnmatch, onRestore, activeTab = '
 
   const handleViewProfileClick = () => {
     if (contextMenu) {
-      setSelectedChatId(contextMenu.chatId);
-      setShowProfileDialog(true);
+      const chat = allChats.find(c => c.id === contextMenu.chatId);
+      if (chat) {
+        setSelectedChatId(contextMenu.chatId);
+        // Get the other participant's user ID from the chat
+        const chatWithUserId = chat as typeof chat & { otherUserId?: string };
+        if (chatWithUserId.otherUserId) {
+          setSelectedUserId(chatWithUserId.otherUserId);
+        }
+        setShowProfileDialog(true);
+      }
       setContextMenu(null);
     }
   };
@@ -77,7 +89,6 @@ export const ChatList = ({ categorizedChats, onUnmatch, onRestore, activeTab = '
   };
 
   const selectedChat = allChats.find(chat => chat.id === selectedChatId);
-  const selectedProfile = mockChatProfiles.find(profile => profile.id === selectedChatId);
 
   // Helper to get category badge color
   const getCategoryColor = (category: string) => {
@@ -119,7 +130,10 @@ export const ChatList = ({ categorizedChats, onUnmatch, onRestore, activeTab = '
                   : 'text-muted-foreground hover:bg-muted'}
                 `}
                 onContextMenu={(e) => handleContextMenu(e, chat.id)}
-                onClick={() => navigate({ to: '/chats/$chatId', params: { chatId: String(chat.id) } })}
+                onClick={() => {
+                  const conversationId = (chat as any).conversationId || String(chat.id);
+                  navigate({ to: '/chats/$chatId', params: { chatId: conversationId } });
+                }}
               >
                 <div className="relative flex-shrink-0">
                   <div className="w-14 h-14 rounded-full bg-gray-200 overflow-hidden">
@@ -150,16 +164,14 @@ export const ChatList = ({ categorizedChats, onUnmatch, onRestore, activeTab = '
                     {chat.lastMessage || 'Start a conversation...'}
                   </p>
                 </div>
-                {activeTab === 'active' && !chat.isRead && (
-                  <button
-                    className="px-3 py-1 text-xs font-medium bg-foreground text-background rounded-full transition-colors flex-shrink-0"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate({ to: '/chats/$chatId', params: { chatId: String(chat.id) } });
-                    }}
-                  >
-                    View
-                  </button>
+                
+                {/* Unread count badge - only show if > 0 */}
+                {activeTab === 'active' && chat.unreadCount !== undefined && chat.unreadCount > 0 && (
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-1 text-xs font-semibold bg-primary text-white rounded-full min-w-[24px] text-center">
+                      {chat.unreadCount > 99 ? '99+' : chat.unreadCount}
+                    </span>
+                  </div>
                 )}
               </div>
             ))}
@@ -233,6 +245,8 @@ export const ChatList = ({ categorizedChats, onUnmatch, onRestore, activeTab = '
         open={showProfileDialog}
         onOpenChange={setShowProfileDialog}
         profile={selectedProfile || null}
+        isLoading={isLoadingProfile}
+        error={profileError}
       />
     </div>
   );

@@ -1,10 +1,13 @@
 export interface Profile {
   id: number;
+  userId?: string; // UUID from backend
   name: string;
   age: number;
   gender: 'male' | 'female' | 'nonbinary';
   imageUrl: string;
   education: string;
+  school?: string;
+  program?: string;
   aboutMe: string;
   lookingFor: string;
   musicGenres: string[];

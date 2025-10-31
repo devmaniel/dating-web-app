@@ -10,7 +10,7 @@ type BirthdayInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
 };
 
 export const BirthdayInput = forwardRef<HTMLInputElement, BirthdayInputProps>(
-  ({ value, onChange, onBlur, name, id, hasError, ...props }, ref) => {
+  ({ value, onChange, onBlur, name, id, hasError, disabled, ...props }, ref) => {
     const [showCalendar, setShowCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<DateValue | null>(null);
     const [inputValue, setInputValue] = useState(value as string || '');
@@ -55,7 +55,7 @@ export const BirthdayInput = forwardRef<HTMLInputElement, BirthdayInputProps>(
           type="hidden"
           name={name}
           id={id}
-          className='text-background'
+          className='text-black'
           value={inputValue}
           onChange={onChange}
           onBlur={onBlur}
@@ -73,18 +73,24 @@ export const BirthdayInput = forwardRef<HTMLInputElement, BirthdayInputProps>(
               maxValue={maxDate}
               minValue={minDate}
               className="w-full"
+              isDisabled={disabled}
             >
               <DateInput
                 unstyled
-                className="w-full h-12 text-background bg-transparent text-gray-600 text-sm focus:outline-none flex items-center"
-                segmentClassName="data-placeholder:text-background data-focused:data-placeholder:text-background data-invalid:data-placeholder:text-background data-invalid:data-focused:data-placeholder:text-background"
+                className="w-full h-12 text-black bg-transparent text-gray-600 text-sm focus:outline-none flex items-center"
+                segmentClassName="data-placeholder:text-gray-600 data-focused:data-placeholder:text-gray-600 data-invalid:data-placeholder:text-gray-600 data-invalid:data-focused:data-placeholder:text-gray-600"
               />
             </DateField>
           </div>
           <button
             type="button"
-            onClick={() => setShowCalendar(!showCalendar)}
-            className="mr-3 text-foreground hover:text-gray-600 transition-colors focus:outline-none"
+            onClick={() => !disabled && setShowCalendar(!showCalendar)}
+            disabled={disabled}
+            className={`mr-3 transition-colors focus:outline-none ${
+              disabled 
+                ? 'text-black cursor-not-allowed' 
+                : 'text-gray-600 hover:text-gray-600'
+            }`}
             aria-label="Toggle calendar"
           >
             <CalendarIcon className="w-5 h-5" />

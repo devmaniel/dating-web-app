@@ -5,7 +5,6 @@ export const onboardingStepTwoSchema = z.object({
     .string()
     .min(1, 'Location is required')
     .min(2, 'Location must be at least 2 characters')
-    .max(100, 'Location must be less than 100 characters')
     .trim(),
   school: z
     .string()
@@ -19,6 +18,11 @@ export const onboardingStepTwoSchema = z.object({
     .min(2, 'Program/Track must be at least 2 characters')
     .max(100, 'Program/Track must be less than 100 characters')
     .trim(),
+  aboutMe: z
+    .string()
+    .max(30, 'About me must be 30 characters or less')
+    .optional()
+    .or(z.literal('')),
 });
 
 export type OnboardingStepTwoFormData = z.infer<typeof onboardingStepTwoSchema>;

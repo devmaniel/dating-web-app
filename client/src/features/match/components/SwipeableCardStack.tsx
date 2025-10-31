@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { Card } from './Card';
+import { Card } from '@/shared/components/match-or-liked-you/card/Card';
 import { EmptyState } from './EmptyState';
 import { SwipeButtons } from './SwipeButtons';
 import { MoreInformation } from './MoreInformation';

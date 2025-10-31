@@ -1,28 +1,86 @@
-import { useState, useRef, useEffect } from "react";
-import { LuUndoDot } from "react-icons/lu";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { VscSettings } from "react-icons/vsc";
+import { useUserProfileCached } from '@/shared/hooks/useUserProfileCached';
+import { updateMatchingPrefs } from '@/api/profile';
 
 interface FilterSettings {
   genderPreferences: Array<'male' | 'female' | 'nonbinary'>;
   purposes: Array<'study-buddy' | 'date' | 'bizz'>;
   ageRange: { min: number; max: number };
-  maxDistance: number;
+  distanceRange: { min: number; max: number };
 }
 
 interface ActionButtonsProps {
-  onUndo?: () => void;
   onFilterChange?: (filters: FilterSettings) => void;
 }
 
-export const ActionButtons = ({ onUndo, onFilterChange }: ActionButtonsProps) => {
+export const ActionButtons = ({ onFilterChange }: ActionButtonsProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [filters, setFilters] = useState<FilterSettings>({
-    genderPreferences: ['male', 'female', 'nonbinary'],
-    purposes: ['study-buddy', 'date', 'bizz'],
-    ageRange: { min: 18, max: 99 },
-    maxDistance: 100
+  const { profile, refetch: refetchProfile } = useUserProfileCached();
+  
+  // Initialize filters from user's saved preferences or use defaults
+  const [filters, setFilters] = useState<FilterSettings>(() => {
+    const matchingPrefs = profile?.matching_prefs;
+    return {
+      genderPreferences: matchingPrefs?.gender_preferences || ['male', 'female', 'nonbinary'],
+      purposes: matchingPrefs?.purpose_preference || ['study-buddy', 'date', 'bizz'],
+      ageRange: { min: 18, max: 25 },
+      distanceRange: { 
+        min: matchingPrefs?.distance_min_km ?? 0, 
+        max: matchingPrefs?.distance_max_km ?? 100 
+      }
+    };
   });
+  
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Update filters when profile loads from database
+  useEffect(() => {
+    const matchingPrefs = profile?.matching_prefs;
+    if (matchingPrefs) {
+      const newFilters = {
+        genderPreferences: matchingPrefs.gender_preferences || ['male', 'female', 'nonbinary'],
+        purposes: matchingPrefs.purpose_preference || ['study-buddy', 'date', 'bizz'],
+        ageRange: { min: 18, max: 25 },
+        distanceRange: { 
+          min: matchingPrefs.distance_min_km ?? 0, 
+          max: matchingPrefs.distance_max_km ?? 100 
+        }
+      };
+      setFilters(newFilters);
+    }
+  }, [profile?.matching_prefs]);
+
+  // Update filters: save to database AND refetch matches
+  const updateFilters = useCallback(async (newFilters: FilterSettings) => {
+    console.log('[ActionButtons] Updating filters:', newFilters);
+    
+    // Update local state
+    setFilters(newFilters);
+    
+    // Save to database
+    try {
+      await updateMatchingPrefs({
+        gender_preferences: newFilters.genderPreferences,
+        purpose_preference: newFilters.purposes,
+        distance_min_km: newFilters.distanceRange.min,
+        distance_max_km: newFilters.distanceRange.max,
+      });
+      console.log('[ActionButtons] Preferences saved to database');
+      
+      // Refetch profile to update cache with new preferences
+      await refetchProfile();
+      console.log('[ActionButtons] Profile cache refreshed');
+    } catch (error) {
+      console.error('[ActionButtons] Failed to save preferences:', error);
+    }
+    
+    // Trigger refetch with new filters
+    onFilterChange?.(newFilters);
+    
+    // Close dropdown
+    setIsDropdownOpen(false);
+  }, [onFilterChange, refetchProfile]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -51,9 +109,7 @@ export const ActionButtons = ({ onUndo, onFilterChange }: ActionButtonsProps) =>
       ? filters.genderPreferences.filter(g => g !== gender)
       : [...filters.genderPreferences, gender];
     
-    const newFilters = { ...filters, genderPreferences: newPreferences };
-    setFilters(newFilters);
-    onFilterChange?.(newFilters);
+    setFilters({ ...filters, genderPreferences: newPreferences });
   };
 
   const togglePurpose = (purpose: 'study-buddy' | 'date' | 'bizz') => {
@@ -66,9 +122,7 @@ export const ActionButtons = ({ onUndo, onFilterChange }: ActionButtonsProps) =>
       ? filters.purposes.filter(p => p !== purpose)
       : [...filters.purposes, purpose];
     
-    const newFilters = { ...filters, purposes: newPurposes };
-    setFilters(newFilters);
-    onFilterChange?.(newFilters);
+    setFilters({ ...filters, purposes: newPurposes });
   };
 
   const purposeLabels = {
@@ -85,15 +139,6 @@ export const ActionButtons = ({ onUndo, onFilterChange }: ActionButtonsProps) =>
 
   return (
     <div className="flex items-center gap-2 relative">
-      <button
-        type="button"
-        className="p-2 hover:bg-accent/10 rounded-full transition-colors"
-        aria-label="Undo"
-        onClick={onUndo}
-      >
-        <LuUndoDot className="w-5 h-5 text-foreground" />
-      </button>
-      
       <div ref={dropdownRef} className="relative">
         <button
           type="button"
@@ -169,12 +214,10 @@ export const ActionButtons = ({ onUndo, onFilterChange }: ActionButtonsProps) =>
                     value={filters.ageRange.min}
                     onChange={(e) => {
                       const newMin = parseInt(e.target.value);
-                      const newFilters = {
+                      setFilters({
                         ...filters,
                         ageRange: { ...filters.ageRange, min: Math.min(newMin, filters.ageRange.max) }
-                      };
-                      setFilters(newFilters);
-                      onFilterChange?.(newFilters);
+                      });
                     }}
                     className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                   />
@@ -189,12 +232,10 @@ export const ActionButtons = ({ onUndo, onFilterChange }: ActionButtonsProps) =>
                     value={filters.ageRange.max}
                     onChange={(e) => {
                       const newMax = parseInt(e.target.value);
-                      const newFilters = {
+                      setFilters({
                         ...filters,
                         ageRange: { ...filters.ageRange, max: Math.max(newMax, filters.ageRange.min) }
-                      };
-                      setFilters(newFilters);
-                      onFilterChange?.(newFilters);
+                      });
                     }}
                     className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
                   />
@@ -206,23 +247,46 @@ export const ActionButtons = ({ onUndo, onFilterChange }: ActionButtonsProps) =>
             {/* Divider */}
             <div className="border-t border-border my-4"></div>
 
-            {/* Distance Section */}
+            {/* Distance Range Section */}
             <div className="mb-5">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Max Distance</h3>
-              <div className="flex items-center gap-3">
-                <input
-                  type="range"
-                  min="1"
-                  max="100"
-                  value={filters.maxDistance}
-                  onChange={(e) => {
-                    const newFilters = { ...filters, maxDistance: parseInt(e.target.value) };
-                    setFilters(newFilters);
-                    onFilterChange?.(newFilters);
-                  }}
-                  className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
-                />
-                <span className="text-sm font-semibold text-primary w-20 flex-shrink-0 text-right">{filters.maxDistance} km</span>
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Distance Range</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-foreground w-12 flex-shrink-0">Min:</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={filters.distanceRange.min}
+                    onChange={(e) => {
+                      const newMin = parseInt(e.target.value);
+                      setFilters({
+                        ...filters,
+                        distanceRange: { ...filters.distanceRange, min: Math.min(newMin, filters.distanceRange.max) }
+                      });
+                    }}
+                    className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                  />
+                  <span className="text-sm font-semibold text-primary w-16 flex-shrink-0 text-right">{filters.distanceRange.min} km</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-foreground w-12 flex-shrink-0">Max:</label>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={filters.distanceRange.max}
+                    onChange={(e) => {
+                      const newMax = parseInt(e.target.value);
+                      setFilters({
+                        ...filters,
+                        distanceRange: { ...filters.distanceRange, max: Math.max(newMax, filters.distanceRange.min) }
+                      });
+                    }}
+                    className="flex-1 h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                  />
+                  <span className="text-sm font-semibold text-primary w-16 flex-shrink-0 text-right">{filters.distanceRange.max} km</span>
+                </div>
               </div>
             </div>
 
@@ -273,6 +337,17 @@ export const ActionButtons = ({ onUndo, onFilterChange }: ActionButtonsProps) =>
                   );
                 })}
               </div>
+            </div>
+
+            {/* Update Filters Button */}
+            <div className="mt-5 pt-4 border-t border-border">
+              <button
+                type="button"
+                onClick={() => updateFilters(filters)}
+                className="w-full py-3 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+              >
+                Update Filters
+              </button>
             </div>
           </div>
         )}

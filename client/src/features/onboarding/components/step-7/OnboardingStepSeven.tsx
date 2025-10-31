@@ -96,20 +96,20 @@ export function OnboardingStepSeven({ onSubmit, onBack, initialData }: Onboardin
     if (cardPreviewFiles.length > 0) {
       setValue('cardPreview', cardPreviewFiles[0].file as File, { shouldValidate: true });
     }
-  }, [cardPreviewFiles, setValue]);
+  }, [cardPreviewFiles]); // Removed setValue from dependencies to prevent double triggers
 
   // Sync PFP from useFileUpload to form
   useEffect(() => {
     if (pfpFiles.length > 0) {
       setValue('pfp', pfpFiles[0].file as File, { shouldValidate: true });
     }
-  }, [pfpFiles, setValue]);
+  }, [pfpFiles]); // Removed setValue from dependencies to prevent double triggers
 
   // Sync albums from useFileUpload to form
   useEffect(() => {
     const fileObjects = albumFiles.map(f => f.file as File);
     setValue('albums', fileObjects, { shouldValidate: true });
-  }, [albumFiles, setValue]);
+  }, [albumFiles]); // Removed setValue from dependencies to prevent double triggers
 
   const handleFormSubmit = async (data: OnboardingStepSevenFormData) => {
     try {

@@ -26,11 +26,14 @@ interface MoreInformationProps {
 
 export const MoreInformation = ({ profile }: MoreInformationProps) => {
   // Transform profile photos to the format expected by Album component
-  const albumPhotos: Photo[] = profile.photos.map((url, index) => ({
-    id: `photo-${index}`,
-    url,
-    name: `Photo ${index + 1}`
-  }));
+  // Filter out empty URLs to ensure only valid photos are passed
+  const albumPhotos: Photo[] = (profile.photos || [])
+    .filter(url => url && typeof url === 'string' && url.trim() !== '')
+    .map((url, index) => ({
+      id: `photo-${index}`,
+      url,
+      name: `Photo ${index + 1}`
+    }));
 
   return (
     <>

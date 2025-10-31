@@ -13,6 +13,17 @@ interface GeocodingResult {
   display_name: string;
   lat: string;
   lon: string;
+  address?: {
+    city?: string;
+    town?: string;
+    municipality?: string;
+    village?: string;
+    suburb?: string;
+    state?: string;
+    province?: string;
+    region?: string;
+    country?: string;
+  };
 }
 
 export const LocationInput = React.forwardRef<HTMLDivElement, LocationInputProps>(
@@ -80,12 +91,50 @@ export const LocationInput = React.forwardRef<HTMLDivElement, LocationInputProps
       };
     }, [search, fetchGeocodingResults]);
 
+    // Extract city and state from Nominatim address data
+    const formatLocation = (result: GeocodingResult): { value: string; label: string } => {
+      const addr = result.address;
+      
+      if (!addr) {
+        return {
+          value: result.display_name,
+          label: result.display_name
+        };
+      }
+
+      // Extract city (try multiple fields)
+      const city = addr.city || addr.town || addr.municipality || addr.village || addr.suburb;
+      
+      // Extract state/province
+      const state = addr.state || addr.province || addr.region;
+      
+      // Format as "City, State"
+      if (city && state) {
+        const formatted = `${city}, ${state}`;
+        return {
+          value: formatted,
+          label: formatted
+        };
+      }
+      
+      // Fallback to city only
+      if (city) {
+        return {
+          value: city,
+          label: city
+        };
+      }
+      
+      // Final fallback to display_name
+      return {
+        value: result.display_name,
+        label: result.display_name
+      };
+    };
+
     // Map geocoding results to display options
     const displayOptions = React.useMemo(() => {
-      return geocodingResults.map((result) => ({
-        value: result.display_name,
-        label: result.display_name,
-      }));
+      return geocodingResults.map((result) => formatLocation(result));
     }, [geocodingResults]);
 
     const selectedLabel = React.useMemo(() => {

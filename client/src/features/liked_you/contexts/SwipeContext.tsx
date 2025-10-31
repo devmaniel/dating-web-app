@@ -3,6 +3,7 @@ import type { Profile } from '../data/profiles';
 import { useLikes } from '@/shared/contexts/LikeContext';
 import { useLikedYouStore } from '@/shared/stores/likedYouStore';
 import { useMatchCreation } from '../hooks/useMatchCreation';
+import { useUpdateLikeStatus } from '../hooks/useUpdateLikeStatus';
 
 export interface FilterSettings {
   genderPreferences: Array<'male' | 'female' | 'nonbinary'>;
@@ -26,9 +27,10 @@ const SwipeContext = createContext<SwipeContextType | undefined>(undefined);
 interface SwipeProviderProps {
   children: React.ReactNode;
   profiles: Profile[];
+  removeProfile?: (likeId: string) => void;
 }
 
-export const SwipeProvider = ({ children, profiles }: SwipeProviderProps) => {
+export const SwipeProvider = ({ children, profiles, removeProfile }: SwipeProviderProps) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDecisions, setSwipeDecisions] = useState<Array<'left' | 'right'>>([]);
   const [swipedProfiles, setSwipedProfiles] = useState<Map<number, 'left' | 'right'>>(new Map());
@@ -39,6 +41,7 @@ export const SwipeProvider = ({ children, profiles }: SwipeProviderProps) => {
   const { addLike, removeLike } = useLikes();
   const { markAsViewed } = useLikedYouStore();
   const { handleSwipeRight } = useMatchCreation();
+  const { accept, reject } = useUpdateLikeStatus();
 
   // Filter profiles based on current filter settings
   const filteredProfiles = useMemo(() => {
@@ -55,7 +58,7 @@ export const SwipeProvider = ({ children, profiles }: SwipeProviderProps) => {
     });
   }, [profiles, filters]);
 
-  const handleSwipe = (direction: 'left' | 'right') => {
+  const handleSwipe = async (direction: 'left' | 'right') => {
     // Record which profile was swiped with what decision
     const currentProfile = filteredProfiles[currentIndex];
     const profileId = currentProfile.id;
@@ -68,6 +71,23 @@ export const SwipeProvider = ({ children, profiles }: SwipeProviderProps) => {
     if (direction === 'right') {
       addLike(profileId);
       
+      // Accept the like in backend (if profile has likeId)
+      const likeId = (currentProfile as any).likeId;
+      if (likeId) {
+        try {
+          await accept(likeId);
+          console.log('✅ Like accepted in backend');
+          
+          // Remove profile from list immediately (optimistic update)
+          if (removeProfile) {
+            removeProfile(likeId);
+          }
+        } catch (error) {
+          console.error('❌ Failed to accept like in backend:', error);
+          // Don't block UI - like is still recorded locally
+        }
+      }
+      
       // Check for match and create conversation if mutual like
       const isMatch = handleSwipeRight(currentProfile);
       
@@ -78,6 +98,23 @@ export const SwipeProvider = ({ children, profiles }: SwipeProviderProps) => {
       }
     } else {
       removeLike(profileId);
+      
+      // Reject the like in backend (if profile has likeId)
+      const likeId = (currentProfile as any).likeId;
+      if (likeId) {
+        try {
+          await reject(likeId);
+          console.log('✅ Like rejected in backend');
+          
+          // Remove profile from list immediately (optimistic update)
+          if (removeProfile) {
+            removeProfile(likeId);
+          }
+        } catch (error) {
+          console.error('❌ Failed to reject like in backend:', error);
+          // Don't block UI - rejection is still recorded locally
+        }
+      }
     }
     
     setCurrentIndex(prev => prev + 1);

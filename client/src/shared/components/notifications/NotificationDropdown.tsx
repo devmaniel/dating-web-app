@@ -8,6 +8,18 @@ interface Notification {
   isRead: boolean;
 }
 
+// Helper function to check if notification is recent (within 30 seconds)
+const isRecentNotification = (timeString: string): boolean => {
+  // Parse relative time strings
+  if (timeString === 'Just now') return true;
+  if (timeString.includes('minutes ago')) {
+    const minutes = parseInt(timeString.split(' ')[0]);
+    return minutes < 1; // Less than 1 minute
+  }
+  
+  return false;
+};
+
 interface NotificationDropdownProps {
   notifications: Notification[];
   onMarkAsRead: (id: string) => void;
@@ -15,30 +27,19 @@ interface NotificationDropdownProps {
 }
 
 export const NotificationDropdown = ({ 
-  notifications, 
-  onMarkAsRead,
-  onMarkAllAsRead
+  notifications
 }: NotificationDropdownProps) => {
-  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
     <div className="absolute right-0 mt-2 w-80 bg-card rounded-lg shadow-xl py-2 z-50 border border-border">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <h3 className="text-sm font-semibold text-card-foreground">Notifications</h3>
-        <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
-            <span className="bg-accent/10 text-accent-foreground text-xs font-medium px-2 py-0.5 rounded-full">
-              {unreadCount} unread
-            </span>
-          )}
-          <button 
-            onClick={onMarkAllAsRead}
-            className="text-xs text-accent hover:text-accent-foreground"
-          >
-            Mark all as read
-          </button>
-        </div>
+        {notifications.length > 0 && (
+          <span className="bg-accent/10 text-accent-foreground text-xs font-medium px-2 py-0.5 rounded-full">
+            {notifications.length} total
+          </span>
+        )}
       </div>
 
       {/* Notifications List */}
@@ -50,37 +51,54 @@ export const NotificationDropdown = ({
           </div>
         ) : (
           <ul>
-            {notifications.map((notification) => (
-              <li 
-                key={notification.id}
-                className={`px-4 py-3 border-b border-border last:border-b-0 hover:bg-accent/10 ${!notification.isRead ? 'bg-accent/5' : ''}`}
-              >
-                <div className="flex justify-between">
-                  <h4 className="text-sm font-medium text-card-foreground">{notification.title}</h4>
-                  {!notification.isRead && (
-                    <span className="w-2 h-2 bg-accent rounded-full"></span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground mt-1">{notification.description}</p>
-                <p className="text-xs text-muted-foreground mt-2">{notification.time}</p>
-                {!notification.isRead && (
-                  <button 
-                    onClick={() => onMarkAsRead(notification.id)}
-                    className="text-xs text-accent hover:text-accent-foreground mt-2"
-                  >
-                    Mark as read
-                  </button>
-                )}
-              </li>
-            ))
-          }
+            {notifications.map((notification) => {
+              const isRecent = isRecentNotification(notification.time);
+              const isUnreadAndRecent = !notification.isRead && isRecent;
+              
+              return (
+                <li 
+                  key={notification.id}
+                  className={`px-4 py-3 border-b border-border last:border-b-0 hover:bg-accent/10 transition-all ${
+                    !notification.isRead ? 'bg-accent/5' : ''
+                  } ${isUnreadAndRecent ? 'border-l-4 border-l-accent' : ''}`}
+                >
+                  <div className="flex justify-between items-start">
+                    <h4 className={`text-sm font-medium text-card-foreground ${
+                      isUnreadAndRecent ? 'text-accent' : ''
+                    }`}>
+                      {notification.title}
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      {isUnreadAndRecent && (
+                        <span className="text-xs text-accent font-medium bg-accent/10 px-2 py-0.5 rounded-full">
+                          NEW
+                        </span>
+                      )}
+                      {!notification.isRead && (
+                        <span className={`w-2 h-2 rounded-full ${
+                          isRecent ? 'bg-accent' : 'bg-accent'
+                        }`}></span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">{notification.description}</p>
+                  <p className={`text-xs mt-2 ${
+                    isUnreadAndRecent ? 'text-accent font-medium' : 'text-muted-foreground'
+                  }`}>
+                    {notification.time}
+                  </p>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
 
       {/* Footer */}
       <div className="px-4 py-2 border-t border-border text-center">
-        <p className="text-xs text-muted-foreground">Scroll to see all notifications</p>
+        <p className="text-xs text-muted-foreground">
+          {notifications.length > 5 && 'Scroll to see all notifications'}
+        </p>
       </div>
     </div>
   );

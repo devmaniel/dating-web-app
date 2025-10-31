@@ -50,6 +50,8 @@ export function OnboardingStepThree({ onSubmit, onBack, initialData }: Onboardin
       openForEveryone: false,
       genderPreferences: [],
       purposes: [],
+      distanceMinKm: 0,
+      distanceMaxKm: 100,
     },
   });
 
@@ -180,6 +182,62 @@ export function OnboardingStepThree({ onSubmit, onBack, initialData }: Onboardin
               {errors.purposes && (
                 <p className="text-sm text-red-500">{errors.purposes.message}</p>
               )}
+            </div>
+
+            {/* Distance Preferences */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-foreground">Distance Preferences</h3>
+              <p className="text-sm text-muted-foreground">Set your preferred distance range for matches</p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Minimum Distance (km)</label>
+                  <Controller
+                    name="distanceMinKm"
+                    control={control}
+                    render={({ field }) => (
+                      <input
+                        type="number"
+                        min="0"
+                        max="999"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="0"
+                      />
+                    )}
+                  />
+                  {errors.distanceMinKm && (
+                    <p className="text-sm text-red-500">{errors.distanceMinKm.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-foreground">Maximum Distance (km)</label>
+                  <Controller
+                    name="distanceMaxKm"
+                    control={control}
+                    render={({ field }) => (
+                      <input
+                        type="number"
+                        min="1"
+                        max="1000"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                        placeholder="100"
+                      />
+                    )}
+                  />
+                  {errors.distanceMaxKm && (
+                    <p className="text-sm text-red-500">{errors.distanceMaxKm.message}</p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="text-xs text-muted-foreground">
+                Distance range: {formValues.distanceMinKm || 0}km - {formValues.distanceMaxKm || 100}km
+              </div>
             </div>
 
             {/* Navigation Buttons */}

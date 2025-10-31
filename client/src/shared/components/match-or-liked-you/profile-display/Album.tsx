@@ -9,6 +9,11 @@ interface AlbumProps {
 }
 
 export const Album = ({ photos = [] }: AlbumProps) => {
+  // Don't render if no photos are provided
+  if (photos.length === 0) {
+    return null;
+  }
+
   // If no photos are provided, create placeholder items
   const displayPhotos = photos.length > 0 
     ? photos 

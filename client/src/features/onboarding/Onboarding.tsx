@@ -10,6 +10,9 @@ import { OnboardingStepSix } from './components/step-6/OnboardingStepSix';
 import { OnboardingStepSeven } from './components/step-7/OnboardingStepSeven';
 import { OnboardingStepEight } from './components/step-8/OnboardingStepEight';
 import { OnboardingLoading } from './components/loading/OnboardingLoading';
+import { useOnboardingSubmit } from './hooks/useOnboardingSubmit';
+import { useUserProfileCached } from '@/shared/hooks/useUserProfileCached';
+import { useUserProfileStore } from '@/shared/stores/userProfileStore';
 import type { OnboardingStepOneFormData } from './schemas/onboardingStepOneSchema';
 import type { OnboardingStepTwoFormData } from './schemas/onboardingStepTwoSchema';
 import type { OnboardingStepThreeFormData } from './schemas/onboardingStepThreeSchema';
@@ -38,10 +41,25 @@ export interface OnboardingState {
 
 export function Onboarding() {
   const navigate = useNavigate();
+  const { submit: submitProfile } = useOnboardingSubmit();
+  const { profile, refetch: refetchProfile } = useUserProfileCached();
+  const { setInitialized } = useUserProfileStore();
   const [state, setState] = useState<OnboardingState>({
     currentStep: 0,
     stepData: {},
   });
+
+  // Helper function to calculate age from birthdate
+  const calculateAge = (birthdate: string): number => {
+    const today = new Date();
+    const birth = new Date(birthdate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   // Helper functions to get full names
   const getFullSchoolName = (schoolValue?: string) => {
@@ -141,6 +159,8 @@ export function Onboarding() {
   };
 
   const handleStepEightSubmit = () => {
+    console.log('🚀 Step 8 Submit - Moving to loading screen (step 9)');
+    console.log('📦 Current stepData:', state.stepData);
     // Move to loading step before final submission
     setState((prev) => ({
       ...prev,
@@ -148,10 +168,36 @@ export function Onboarding() {
     }));
   };
 
-  const handleLoadingComplete = () => {
-    // Handle final submission (e.g., API call)
-    console.log('Onboarding complete:', state.stepData);
-    navigate({ to: '/match' });
+  const handleLoadingComplete = async () => {
+    console.log('⏰ Loading Complete - Starting profile submission');
+    console.log('📦 Submitting stepData:', state.stepData);
+    try {
+      // Submit profile data to backend
+      console.log('📤 Calling submitProfile...');
+      await submitProfile(state.stepData);
+      console.log('✅ Profile submitted successfully!');
+      
+      // Wait a moment for AWS uploads to complete, then refetch profile data
+      console.log('⏳ Waiting for AWS uploads to complete...');
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+      
+      // Invalidate cache and refetch profile data to get latest data including AWS uploads
+      console.log('🔄 Invalidating cache and refetching profile data...');
+      setInitialized(false); // Force fresh fetch by invalidating cache
+      await refetchProfile();
+      console.log('✅ Profile data refetched successfully!');
+      
+      // Navigate to match page on success
+      console.log('🔄 Navigating to /match');
+      navigate({ to: '/match' });
+    } catch (err) {
+      console.error('❌ Failed to complete onboarding:', err);
+      // Go back to step 8 on error
+      setState((prev) => ({
+        ...prev,
+        currentStep: 8,
+      }));
+    }
   };
 
   const handlePreviousStep = () => {
@@ -234,17 +280,17 @@ export function Onboarding() {
               name: state.stepData.step1?.firstName,
               middleName: state.stepData.step1?.middleName,
               lastName: state.stepData.step1?.lastName,
-              age: state.stepData.step1?.birthdate ? new Date().getFullYear() - new Date(state.stepData.step1.birthdate).getFullYear() : undefined,
+              age: profile?.birthdate ? calculateAge(profile.birthdate) : undefined,
               gender: state.stepData.step1?.gender,
               
               // Location & Education
               location: state.stepData.step2?.location ? 
                 (() => {
                   const parts = state.stepData.step2!.location!.split(',').map(part => part.trim());
-                  // For locations like "Forbes Park, Makati, Metro Manila", we want "Makati"
-                  // For locations like "Makati, Metro Manila", we want "Makati"
-                  // For locations like "Makati", we want "Makati"
-                  return parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+                  // Extract just the city (first part) from location
+                  // "Makati, Metro Manila, Philippines" → "Makati"
+                  // "Quezon City, Metro Manila, Philippines" → "Quezon City"
+                  return parts[0];
                 })() 
                 : undefined,
               school: getFullSchoolName(state.stepData.step2?.school),
@@ -261,7 +307,7 @@ export function Onboarding() {
               // Profile Content
               lookingFor: state.stepData.step4?.lookingFor,
               interests: state.stepData.step5?.interests,
-              aboutMe: state.stepData.step5?.interests?.join(', '),
+              aboutMe: state.stepData.step2?.aboutMe,
               
               // Media
               cardPreviewUrl: state.stepData.step7?.cardPreview ? URL.createObjectURL(state.stepData.step7.cardPreview) : undefined,

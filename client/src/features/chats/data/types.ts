@@ -12,6 +12,7 @@ export interface Chat {
   isNewlyMatched?: boolean;
   matchedAt: string; // ISO date string when the match occurred
   lastResponseAt?: string; // ISO date string of last response from user
+  unreadCount?: number; // Number of unread messages
 }
 
 export interface Message {
@@ -25,6 +26,7 @@ export interface Message {
 export interface ChatProfile extends Chat {
   aboutMe: string;
   lookingFor: string;
+  program: string; // e.g., "Computer Science at University of the Philippines Diliman"
   musicGenres: string[];
   musicArtists: string[];
   musicSongs: string[];

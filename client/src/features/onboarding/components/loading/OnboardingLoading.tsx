@@ -47,8 +47,10 @@ export function OnboardingLoading({ onComplete, duration = 5000 }: OnboardingLoa
     // Complete after duration, ensure progress is 100%, then delay transfer
     let delayTimer: number | undefined;
     const completeTimer = window.setTimeout(() => {
+      console.log('⏰ OnboardingLoading: Timer completed, setting progress to 100%');
       setProgress(100);
       delayTimer = window.setTimeout(() => {
+        console.log('⏰ OnboardingLoading: Calling onComplete()');
         onComplete();
       }, 2000);
     }, duration);

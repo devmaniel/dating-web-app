@@ -4,63 +4,87 @@ import { Link } from '@tanstack/react-router';
 import { ArrowLeft, Send } from 'lucide-react';
 import { BsThreeDotsVertical } from 'react-icons/bs';
 import { UnmatchDialog } from './UnmatchDialog';
-import { ProfileDialog } from '@/shared/components/profile-dialog';
+import { ProfileDialog } from './ProfileDialog';
 import { useNavigate } from '@tanstack/react-router';
-import { useChat, useMessages } from '../hooks';
-import { useDemoMessages } from '../hooks/useDemoMessages';
-import { useChats } from '../hooks/useChats';
-import { mockChatProfiles } from '../data';
+import { useChatMessages, useConversations, useUserProfile } from '../hooks';
+import { unmatchConversation } from '@/api/conversation';
 import { formatMatchTimestamp } from '../utils/formatMatchTimestamp';
 import { 
   getRandomNewlyMatchedMessage, 
   getRandomNewlyMatchedDescription,
   isNewlyMatched 
 } from '../data/newlyMatchedData';
+import { onConversationUnmatched, offConversationUnmatched, type ConversationUnmatchedEvent } from '@/shared/services/socket';
 
 interface ConversationViewProps {
-  chatId: number;
+  conversationId: string;
 }
 
-export const ConversationView = ({ chatId }: ConversationViewProps) => {
-  const { chat } = useChat(chatId);
-  const { markChatAsRead, handleUnmatch: handleUnmatchChat } = useChats();
-  
-  // Call both hooks unconditionally to satisfy React hooks rules
-  const demoMessages = useDemoMessages(chatId);
-  const regularMessages = useMessages(chatId);
-  
-  // Select which messages hook to use based on chatId
+export const ConversationView = ({ conversationId }: ConversationViewProps) => {
+  const { chats, isLoading: isLoadingConversations, refetch } = useConversations();
   const {
     messages,
     messageInput,
     setMessageInput,
     messagesEndRef,
     handleSendMessage: originalHandleSendMessage,
-  } = chatId === 6 ? demoMessages : regularMessages;
+    isLoading: isLoadingMessages,
+  } = useChatMessages(conversationId);
+  
+  // Find the chat from conversations
+  const chat = chats.find(c => {
+    const chatWithId = c as typeof c & { conversationId?: string };
+    return chatWithId.conversationId === conversationId;
+  });
 
   const [showMenu, setShowMenu] = useState(false);
   const [showUnmatchDialog, setShowUnmatchDialog] = useState(false);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [newlyMatchedMessage, setNewlyMatchedMessage] = useState('');
   const [newlyMatchedDescription, setNewlyMatchedDescription] = useState('');
+  const [isUnmatched, setIsUnmatched] = useState(chat?.isUnmatched || false);
   const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const chatProfile = mockChatProfiles.find(profile => profile.id === chatId);
+  // Profile dialog state - use the same approach as ChatList
+  const { profile, isLoading: isLoadingProfile, error: profileError } = useUserProfile(selectedUserId);
 
-  // Mark chat as read when component mounts
+  // Listen for real-time unmatch events
   useEffect(() => {
-    if (chatId) {
-      markChatAsRead(chatId);
-    }
-  }, [chatId, markChatAsRead]);
+    const handleUnmatchEvent = (event: ConversationUnmatchedEvent) => {
+      const { conversationId: unmatchedConvId } = event.data;
+      
+      // If this conversation was unmatched, update state and show banner
+      if (unmatchedConvId === conversationId) {
+        setIsUnmatched(true);
+        refetch(); // Refresh conversation data
+        
+        // Show notification
+        console.log('🚫 Conversation was unmatched by the other user');
+      }
+    };
+
+    onConversationUnmatched(handleUnmatchEvent);
+
+    return () => {
+      offConversationUnmatched(handleUnmatchEvent);
+    };
+  }, [conversationId, refetch]);
+
+  // Update isUnmatched when chat changes
+  useEffect(() => {
+    setIsUnmatched(chat?.isUnmatched || false);
+  }, [chat?.isUnmatched]);
+
+  // Messages are automatically marked as read by useChatMessages hook
 
   // Prevent sending messages to archived or unmatched chats
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Don't send message if chat is archived or unmatched
-    if (chat?.isArchived || chat?.isUnmatched) return;
+    if (chat?.isArchived || isUnmatched) return;
     
     originalHandleSendMessage(e);
   };
@@ -93,12 +117,29 @@ export const ConversationView = ({ chatId }: ConversationViewProps) => {
     };
   }, [showMenu]);
 
-  const handleUnmatch = () => {
-    if (chat) {
-      handleUnmatchChat(chat.id);
+  const handleUnmatch = async () => {
+    try {
+      await unmatchConversation(conversationId);
+      await refetch(); // Refresh conversations
       navigate({ to: '/chats' });
+    } catch (error) {
+      console.error('Failed to unmatch:', error);
     }
   };
+
+  if (isLoadingConversations || isLoadingMessages) {
+    return (
+      <div className="max-w-2xl mx-auto mt-5">
+        <div className="flex items-center gap-3 mb-4">
+          <Link to="/chats" className="p-2 -ml-2 rounded-full text-foreground hover:text-background hover:bg-gray-100">
+            <ArrowLeft size={20} />
+          </Link>
+          <h1 className="text-lg font-semibold">Conversation</h1>
+        </div>
+        <div className="text-sm text-gray-500">Loading...</div>
+      </div>
+    );
+  }
 
   if (!chat) {
     return (
@@ -117,7 +158,7 @@ export const ConversationView = ({ chatId }: ConversationViewProps) => {
   return (
     <div className="max-w-2xl mx-auto mt-5">
       {/* Unmatched chat banner */}
-      {chat?.isUnmatched && (
+      {isUnmatched && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
           <div className="flex items-start gap-3">
             <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,7 +202,7 @@ export const ConversationView = ({ chatId }: ConversationViewProps) => {
           <div className="min-w-0 flex-1">
             <div className="font-semibold text-sm truncate">{chat.name}</div>
             <div className="text-xs text-gray-500 truncate">
-              {chat.isNewlyMatched ? `Studied at ${chat.school}` : `Matched ${formatMatchTimestamp(chat)}`}
+              {formatMatchTimestamp(chat)}
             </div>
           </div>
           {!chat?.isArchived && (
@@ -178,7 +219,14 @@ export const ConversationView = ({ chatId }: ConversationViewProps) => {
                   <button
                     onClick={() => {
                       setShowMenu(false);
-                      setShowProfileDialog(true);
+                      if (chat) {
+                        // Get the other participant's user ID from the chat (same as ChatList)
+                        const chatWithUserId = chat as typeof chat & { otherUserId?: string };
+                        if (chatWithUserId.otherUserId) {
+                          setSelectedUserId(chatWithUserId.otherUserId);
+                          setShowProfileDialog(true);
+                        }
+                      }
                     }}
                     className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                   >
@@ -220,7 +268,13 @@ export const ConversationView = ({ chatId }: ConversationViewProps) => {
         </div>
       </div>
 
-      <div className="space-y-3 pb-24 min-h-[calc(100vh-200px)]">
+      {/* Messages container - scrollable and starts at bottom */}
+      <div 
+        className="overflow-y-auto pb-24 px-4" 
+        style={{ 
+          height: 'calc(100vh - 200px)',
+        }}
+      >
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
             {isNewlyMatched(chat) ? (
@@ -234,13 +288,13 @@ export const ConversationView = ({ chatId }: ConversationViewProps) => {
               <>
                 <h3 className="font-semibold text-lg mb-1">Start a conversation</h3>
                 <p className="text-sm text-gray-500 max-w-xs mb-4">
-                  You matched {formatMatchTimestamp(chat).toLowerCase()}. Send a message to get to know {chat.name} better!
+                  {formatMatchTimestamp(chat)}. Send a message to get to know {chat.name} better!
                 </p>
               </>
             )}
           </div>
         ) : (
-          <>
+          <div className="space-y-3 py-4">
             {messages.map((m: Message) => (
               <div key={m.id} className={`flex ${m.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
                 <div
@@ -256,11 +310,11 @@ export const ConversationView = ({ chatId }: ConversationViewProps) => {
               </div>
             ))}
             <div ref={messagesEndRef} />
-          </>
+          </div>
         )}
       </div>
 
-      {!(chat?.isArchived || chat?.isUnmatched) && (
+      {!(chat?.isArchived || isUnmatched) && (
         <div className="fixed left-0 right-0 bottom-0 border-t bg-background">
           <div className="max-w-2xl mx-auto p-3">
             <form
@@ -297,9 +351,17 @@ export const ConversationView = ({ chatId }: ConversationViewProps) => {
 
       <ProfileDialog
         open={showProfileDialog}
-        onOpenChange={setShowProfileDialog}
-        profile={chatProfile || null}
+        onOpenChange={(open) => {
+          setShowProfileDialog(open);
+          if (!open) {
+            setSelectedUserId(null);
+          }
+        }}
+        profile={profile}
+        isLoading={isLoadingProfile}
+        error={profileError}
       />
+
     </div>
   );
 };

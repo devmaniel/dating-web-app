@@ -4,6 +4,7 @@ import { EmptyState } from './EmptyState';
 import { ScrollIndicator } from './ScrollIndicator';
 import { SwipeButtons } from '../actions/SwipeButtons';
 import { MoreInformation } from '../profile-display/MoreInformation';
+import { StackSkeleton } from '../../skeletons/StackSkeleton';
 
 interface Profile {
   id: number;
@@ -21,6 +22,9 @@ interface Profile {
   musicSongs: string[];
   musicAlbums: string[];
   musicAlbumCovers: string[];
+  gender?: 'male' | 'female' | 'nonbinary';
+  school?: string;
+  program?: string;
 }
 
 interface SwipeContextType {
@@ -33,9 +37,11 @@ interface SwipeContextType {
 
 interface SwipeableCardStackProps {
   useSwipe: () => SwipeContextType;
+  isLoading?: boolean;
+  variant?: 'match' | 'liked-you';
 }
 
-export const SwipeableCardStack = forwardRef<{ undo: () => void }, SwipeableCardStackProps>(({ useSwipe }, ref) => {
+export const SwipeableCardStack = forwardRef<{ undo: () => void }, SwipeableCardStackProps>(({ useSwipe, isLoading = false, variant = 'match' }, ref) => {
   const { currentIndex, handleSwipe, handleUndo, profiles, swipedProfiles } = useSwipe();
   const [swipeDirection, setSwipeDirection] = useState<'' | 'left' | 'right'>('');
   const [dragOffset, setDragOffset] = useState(0);
@@ -163,9 +169,14 @@ export const SwipeableCardStack = forwardRef<{ undo: () => void }, SwipeableCard
     undo: handleUndo
   }));
 
+  // Show skeleton while loading
+  if (isLoading) {
+    return <StackSkeleton />;
+  }
+
   // If we've gone through all profiles, show empty state
   if (currentIndex >= profiles.length) {
-    return <EmptyState />;
+    return <EmptyState variant={variant} />;
   }
 
   return (
@@ -219,6 +230,9 @@ export const SwipeableCardStack = forwardRef<{ undo: () => void }, SwipeableCard
                 purposes={profile.purposes}
                 location={profile.location}
                 distanceKm={profile.distanceKm}
+                gender={profile.gender}
+                school={profile.school}
+                program={profile.program}
               />
             </div>
           );

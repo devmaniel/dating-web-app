@@ -10,7 +10,10 @@ export const Card = ({
   previousDecision,
   purposes = [],
   location = "Manila",
-  distanceKm = 0
+  distanceKm = 0,
+  gender,
+  school,
+  program
 }: { 
   children?: React.ReactNode;
   name?: string;
@@ -21,12 +24,28 @@ export const Card = ({
   purposes?: Array<'study-buddy' | 'date' | 'bizz'>;
   location?: string;
   distanceKm?: number;
+  gender?: 'male' | 'female' | 'nonbinary';
+  school?: string;
+  program?: string;
 }) => {
   const purposeConfig = {
     'study-buddy': { label: 'Looking for a Study Buddy', icon: <FaBook className="inline mr-1" /> },
     'date': { label: 'Looking for Dating', icon: <FaHeart className="inline mr-1" /> },
     'bizz': { label: 'Looking for Networking', icon: <FaUsers className="inline mr-1" /> }
   };
+
+  const genderLabels = {
+    'male': 'Male',
+    'female': 'Female',
+    'nonbinary': 'Non-binary'
+  };
+
+  // Determine what to display: if school/program provided, use those; otherwise fall back to education
+  const hasEducationDetails = school || program;
+  
+  // Extract city from location (first part before comma)
+  const cityOnly = location ? location.split(',')[0].trim() : location;
+  
   return (
     <div className="w-full h-[400px] md:h-[450px] bg-foreground rounded-xl relative overflow-hidden flex items-center justify-center">
       {/* Profile Image */}
@@ -36,31 +55,53 @@ export const Card = ({
         className="max-h-full max-w-full object-contain bg-black opacity-80"
       />
       
-      {/* Previous decision indicator */}
-      {previousDecision && (
-        <div className="absolute top-4 right-4">
-          <span className={`px-3 py-1 rounded-full text-xs font-bold ${previousDecision === 'matched' ? 'bg-primary text-white' : 'bg-destructive text-white'}`}>
-            {previousDecision === 'matched' ? 'previously matched' : 'previously rejected'}
-          </span>
-        </div>
-      )}
-      
       {/* Profile Information */}
       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6">
-        <div className="flex flex-col gap-2 items-start">
+        <div className="flex flex-col gap-3 items-start">
+          {/* Name and Age */}
           <div className="space-y-2 text-left">
-            <p className="text-white">it's</p>
+            <p className="text-white text-sm">it's</p>
             <h2 className="text-white text-4xl font-bold">{name}, {age}</h2>
           </div>
-          <div className="bg-white text-black px-3 py-1 rounded-full text-sm font-medium mb-2">
-            {education}
+
+          {/* Top Row: Gender + Location */}
+          <div className="flex flex-wrap gap-2 w-full">
+            {gender && (
+              <div className="bg-white/80 text-black px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+                {genderLabels[gender]}
+              </div>
+            )}
+            <div className="bg-white/80 text-black px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm">
+              {cityOnly} ({distanceKm}km)
+            </div>
           </div>
-          <div className="bg-white/90 text-black px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
-            {location} ({distanceKm}km)
-          </div>
+
+          {/* Education Details Row */}
+          {hasEducationDetails && (
+            <div className="flex flex-wrap gap-2 w-full">
+              {program && (
+                <div className="bg-white text-black px-3 py-1 rounded-full text-sm font-medium">
+                  {program}
+                </div>
+              )}
+              {school && (
+                <div className="bg-white text-black px-3 py-1 rounded-full text-sm font-medium">
+                  {school}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Fallback to education string if no details */}
+          {!hasEducationDetails && education && (
+            <div className="bg-white text-black px-3 py-1 rounded-full text-sm font-medium">
+              {education}
+            </div>
+          )}
+
           {/* Purpose badges */}
           {purposes.length > 0 && (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 w-full">
               {purposes.map((purpose) => (
                 <div 
                   key={purpose}

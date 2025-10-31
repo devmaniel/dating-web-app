@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import FlexLogoLight from '@/assets/svgs/flex-text-logo-light-mode.svg';
 import FlexLogoDark from '@/assets/svgs/flex-text-logo-dark-mode.svg';
 import FallbackLogo from '@/assets/image/icon.jpg';
@@ -5,9 +6,11 @@ import { UserProfile } from '@/shared/components/profile/UserProfile';
 import { Notification } from '@/shared/components/notifications/Notification';
 import { useTheme } from '@/shared/contexts/theme-context';
 
-export const Header = () => {
+export const Header = memo(() => {
   const { resolvedTheme } = useTheme();
   const logoSrc = resolvedTheme === 'dark' ? FlexLogoDark : FlexLogoLight;
+
+  // Header optimized with memo
 
   return (
     <header className="w-full border-b border-border bg-background">
@@ -35,4 +38,4 @@ export const Header = () => {
       </div>
     </header>
   );
-};
+});
